@@ -3,65 +3,135 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Boss Picker</title>
+<title>Boss Browser</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Press+Start+2P&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tomorrow:wght@500;700&display=swap">
 <style>
+/* Styled after the LSS Mod Loader's mod browser: glassy panels on a purple-to-teal glow, list rows, search + numbered pages. */
 :root{
-  --stone:#1d1a2b; --wall:#2a2640; --brick:#3a3456; --mortar:#57507a;
-  --text:#efeaf7; --muted:#b3abc9; --lava:#ff7a2f; --lava-deep:#c4481a; --coin:#ffd34d;
-  --display:"Press Start 2P", ui-monospace, "Courier New", monospace;
-  --body:"Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ink:#ffffff; --soft:#dcd3ff; --dim:rgba(255,255,255,.62);
+  --glass:rgba(35,0,132,.22); --glass-hover:rgba(212,56,255,.20); --edge:rgba(255,255,255,.24);
+  --list:rgba(0,255,255,.13); --row:rgba(255,255,255,.08);
+  --gold:#ffe14d; --go1:#ff5010; --go2:#ffc810;
+  --font:"Tomorrow", "Segoe UI", system-ui, sans-serif;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--stone);color:var(--text);font-family:var(--body);font-size:16px;line-height:1.5}
-.wrap{max-width:1000px;margin:0 auto;padding-inline:16px;padding-block:28px 64px;display:grid;gap:22px}
-h1{font-family:var(--display);font-size:clamp(20px,4.5vw,30px);line-height:1.3;margin:0;color:var(--coin);text-shadow:3px 3px 0 var(--lava-deep)}
-.lede{margin:0;color:var(--muted);max-width:60ch}
-.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-input{font:inherit;padding:9px 12px;border-radius:4px;border:2px solid var(--mortar);background:var(--wall);color:var(--text);width:16em;max-width:100%}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
-a.card{display:grid;gap:8px;justify-items:center;text-decoration:none;color:var(--text);background:var(--wall);border:2px solid var(--brick);border-radius:6px;padding:14px 10px}
-a.card:hover,a.card:focus-visible{border-color:var(--coin);outline:none}
-.art{height:110px;width:100%;display:grid;place-items:end center;background:repeating-conic-gradient(#25213a 0 25%,#2c2744 0 50%) 0 0/12px 12px;border-radius:3px}
-.art img{image-rendering:pixelated;max-height:104px;max-width:100%}
-.name{font-family:var(--display);font-size:10px;letter-spacing:.05em;text-align:center;word-break:break-word}
-.play{font-weight:700;font-size:14px;background:var(--lava);color:#1b0f08;border-radius:4px;padding:4px 12px}
-a.card.plain .play{background:var(--brick);color:var(--text)}
-.empty{color:var(--muted)}
+html{min-height:100%;background:#1b1150 linear-gradient(15deg,#10127c 0%,#3a1fa0 45%,#18c9cf 100%) fixed}
+body{margin:0;min-height:100vh;font-family:var(--font);font-weight:500;color:var(--ink);background:transparent}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:repeating-linear-gradient(45deg,rgba(255,255,255,.035) 0 2px,transparent 2px 22px),
+             repeating-linear-gradient(-45deg,rgba(255,255,255,.035) 0 2px,transparent 2px 22px);}
+#page{width:min(900px,100%);margin:0 auto;padding-inline:16px;padding-block:28px 48px;display:flex;flex-direction:column;gap:20px;filter:drop-shadow(0 0 10px rgba(0,0,0,.6))}
+.title-bar{border-radius:20px;padding:20px;background:var(--glass);border:1px solid var(--edge);transition:background-color .8s ease;text-align:center}
+.title-bar:hover{background:var(--glass-hover)}
+h1{margin:0;font-size:clamp(20px,4vw,28px);font-weight:700;text-wrap:balance}
+.sub{margin:6px 0 0;color:var(--soft);font-size:14px}
+#search-bar{display:grid;grid-template-columns:1fr auto;width:min(420px,100%);margin:16px auto 0;border-radius:8px;box-shadow:0 0 4px 2px rgba(145,246,255,.32)}
+#search-bar:focus-within{box-shadow:0 0 4px 2px rgba(255,238,0,.36)}
+#search-input{font:inherit;color:#e6e6e6;padding:9px 10px;border:2px solid rgba(193,227,223,.92);border-right:0;border-radius:8px 0 0 8px;background:linear-gradient(22deg,rgba(0,0,0,.65),rgba(0,0,0,.3));min-width:0}
+#search-input:focus{outline:none;border-color:rgba(255,234,0,.92)}
+#search-input::placeholder{color:#dfbdff;opacity:.55}
+.btn{font:inherit;font-weight:700;cursor:pointer;color:#fff;border:2px solid rgba(255,255,255,.75);border-radius:6px;padding:6px 12px;background:linear-gradient(40deg,rgba(120,90,220,.75),rgba(170,130,255,.75))}
+.btn:hover{background:linear-gradient(40deg,rgba(212,56,255,.8),rgba(255,140,220,.8))}
+.btn:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+#search-button{border-radius:0 8px 8px 0;padding:6px 14px}
+#list-wrap{border-radius:20px;padding:20px;background:var(--list)}
+#status{text-align:center;margin:6px 0}
+#status.loading{text-decoration:underline;animation:loadColor 1s infinite alternate-reverse linear}
+@keyframes loadColor{from{color:var(--go1)}to{color:var(--go2)}}
+#boss-list{display:grid;border:1px solid rgba(255,255,255,.4);border-radius:6px;background:var(--row);overflow:hidden}
+#boss-list:empty{display:none}
+.list-item{display:flex;align-items:center;gap:14px;padding:8px 12px;transition:background-color .6s ease;border-top:1px solid rgba(255,255,255,.12)}
+.list-item:first-child{border-top:0}
+.list-item:hover{background:rgba(255,255,255,.10)}
+.thumb{width:64px;height:64px;flex:none;display:grid;place-items:end center;border-radius:6px;background:rgba(0,0,0,.35);overflow:hidden}
+.thumb img{max-width:60px;max-height:60px;image-rendering:pixelated}
+.thumb .orig{place-self:center;font-size:11px;color:var(--dim);text-align:center;line-height:1.2}
+.info{flex:1;min-width:0}
+.name{font-size:17px;font-weight:700;overflow-wrap:anywhere}
+.meta{font-size:13px;color:var(--dim)}
+a.fight{text-decoration:none;flex:none}
+a.fight .btn{display:inline-block;background:linear-gradient(40deg,var(--go1),var(--go2));border-color:rgba(255,255,255,.85);color:#2a1000}
+a.fight .btn.plain{background:linear-gradient(40deg,rgba(146,146,146,.7),rgba(190,190,190,.7));color:#fff}
+#pagination{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;padding-top:14px}
+#pagination .btn{min-width:38px;aspect-ratio:1/1;padding:4px}
+#pagination .btn[aria-current="page"]{background:linear-gradient(40deg,var(--go1),var(--go2));color:#2a1000}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <h1>Boss Picker</h1>
-  <p class="lede">Pick a boss, then place Bowser in any level. Whoever you picked shows up in his place, for the whole time you play.</p>
-  <div class="tools"><label for="q" class="lede">Find a boss</label><input id="q" type="search" placeholder="Code name"></div>
-  <div class="grid" id="grid"><p class="empty">Loading bosses...</p></div>
+<div id="page">
+  <div class="title-bar">
+    <h1>Boss Browser</h1>
+    <p class="sub">Pick a boss, then place Bowser in any level. Your pick shows up in his place.</p>
+    <form id="search-bar" role="search">
+      <input id="search-input" type="search" placeholder="Search bosses by code name..." aria-label="Search bosses">
+      <button id="search-button" class="btn" type="submit">Search</button>
+    </form>
+  </div>
+  <div id="list-wrap">
+    <p id="status" class="loading">Loading...</p>
+    <div id="boss-list"></div>
+    <nav id="pagination" aria-label="Pages"></nav>
+  </div>
 </div>
 <script>
-(async function(){
-  const grid=document.getElementById("grid"), q=document.getElementById("q");
-  let bosses=[];
-  try{ const r=await fetch("bosses/index.json",{cache:"no-cache"}); bosses=(await r.json()).bosses||[]; }catch(e){}
-  function card(href,name,img,plain){
-    const a=document.createElement("a");a.className="card"+(plain?" plain":"");a.href=href;
-    const art=document.createElement("span");art.className="art";
-    if(img){const i=document.createElement("img");i.src=img;i.alt=name;art.appendChild(i);}
-    else{const t=document.createElement("span");t.className="name";t.style.placeSelf="center";t.style.color="var(--muted)";t.textContent="The original";art.appendChild(t);}
-    const n=document.createElement("span");n.className="name";n.textContent=name;
-    const p=document.createElement("span");p.className="play";p.textContent=plain?"Play":"Fight";
-    a.append(art,n,p);return a;
+(function(){
+  const PER_PAGE = 10;
+  const list = document.getElementById("boss-list"), pag = document.getElementById("pagination");
+  const status = document.getElementById("status"), input = document.getElementById("search-input");
+  let bosses = [];
+
+  function params(){ const p = new URLSearchParams(location.search); return { page: Math.max(1, parseInt(p.get("page")) || 1), search: (p.get("search") || "").trim() }; }
+  function setParams(page, search, push){
+    const url = location.pathname + "?page=" + page + "&search=" + encodeURIComponent(search);
+    (push ? history.pushState : history.replaceState).call(history, null, "", url);
+    render();
+  }
+  function row(code, href, thumb, meta, plain){
+    const r = document.createElement("div"); r.className = "list-item";
+    const t = document.createElement("div"); t.className = "thumb";
+    if (thumb){ const i = document.createElement("img"); i.src = thumb; i.alt = ""; i.loading = "lazy"; t.appendChild(i); }
+    else { const o = document.createElement("span"); o.className = "orig"; o.textContent = "the original"; t.appendChild(o); }
+    const info = document.createElement("div"); info.className = "info";
+    const n = document.createElement("div"); n.className = "name"; n.textContent = code;
+    const m = document.createElement("div"); m.className = "meta"; m.textContent = meta;
+    info.append(n, m);
+    const a = document.createElement("a"); a.className = "fight"; a.href = href;
+    const b = document.createElement("span"); b.className = "btn" + (plain ? " plain" : ""); b.textContent = plain ? "Play" : "Fight";
+    a.appendChild(b);
+    r.append(t, info, a);
+    return r;
   }
   function render(){
-    const term=q.value.trim().toLowerCase();grid.innerHTML="";
-    grid.appendChild(card("./?boss=","Normal Bowser",null,true));
-    const list=bosses.filter(b=>!term||b.code.includes(term));
-    for(const b of list) grid.appendChild(card("./?boss="+encodeURIComponent(b.code),b.code,"bosses/"+b.code+"/thumb.png"));
-    if(!bosses.length){const p=document.createElement("p");p.className="empty";p.textContent="No bosses yet. Run build-site to add some.";grid.appendChild(p);}
+    const { page, search } = params();
+    if (document.activeElement !== input) input.value = search;
+    const term = search.toLowerCase();
+    const matches = bosses.filter(b => !term || b.code.includes(term));
+    const pages = Math.max(1, Math.ceil(matches.length / PER_PAGE));
+    const cur = Math.min(page, pages);
+    list.innerHTML = ""; pag.innerHTML = "";
+    if (cur === 1 && !term) list.appendChild(row("Normal Bowser", "./?boss=", null, "The original boss", true));
+    for (const b of matches.slice((cur - 1) * PER_PAGE, cur * PER_PAGE))
+      list.appendChild(row(b.code, "./?boss=" + encodeURIComponent(b.code), "bosses/" + b.code + "/thumb.png", "Student boss"));
+    status.className = "";
+    status.textContent = !bosses.length ? "No student bosses yet. Check back after your teacher adds them."
+      : !matches.length ? "Couldn't find any bosses for “" + search + "”"
+      : matches.length + " boss" + (matches.length === 1 ? "" : "es") + (term ? " found" : "");
+    if (pages > 1) for (let i = 1; i <= pages; i++){
+      const btn = document.createElement("button"); btn.className = "btn"; btn.type = "button"; btn.textContent = i;
+      if (i === cur) btn.setAttribute("aria-current", "page");
+      btn.addEventListener("click", () => setParams(i, search, true));
+      pag.appendChild(btn);
+    }
   }
-  q.addEventListener("input",render);render();
+  document.getElementById("search-bar").addEventListener("submit", e => { e.preventDefault(); setParams(1, input.value.trim(), true); });
+  input.addEventListener("input", () => setParams(1, input.value.trim(), false));
+  window.addEventListener("popstate", render);
+  fetch("bosses/index.json", { cache: "no-cache" }).then(r => r.json()).then(d => { bosses = (d.bosses || []).sort((a, b) => a.code.localeCompare(b.code)); })
+    .catch(() => {}).finally(render);
 })();
 </script>
 </body>
