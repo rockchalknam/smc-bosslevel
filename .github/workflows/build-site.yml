@@ -58,6 +58,7 @@ jobs:
         run: |
           rm -rf site/bosses
           python tools/build_site.py turned-in site
+          [ -f boss-maker.html ] && cp boss-maker.html site/ || true
 
       - uses: actions/configure-pages@v5
 
