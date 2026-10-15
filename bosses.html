@@ -46,6 +46,8 @@ h2 .count{font:800 1rem Nunito,sans-serif;-webkit-text-stroke:0;text-shadow:none
 .boss:active{transform:translateY(5px);box-shadow:inset 0 -6px 0 var(--block-edge),0 1px 0 var(--ink)}
 .boss .stage{height:130px}
 .boss .nm{font:400 1.2rem/1.1 Bungee,Impact,sans-serif;word-break:break-word}
+.boss .cn{font-weight:800;font-size:.85rem;opacity:.75;margin-top:-4px}
+.boss .say{font-style:italic;font-weight:700;font-size:.95rem;line-height:1.3}
 .boss .go{align-self:flex-start;font-weight:800;font-size:1rem;background:var(--brick);color:#fff;border:3px solid var(--ink);border-radius:8px;padding:3px 12px}
 .boss.done{background:var(--grass);color:#fff;box-shadow:inset 0 -6px 0 #2e7d32,0 6px 0 var(--ink)}
 .btn{font:800 1.15rem Nunito,sans-serif;padding:12px 20px;border:3px solid var(--ink);border-radius:12px;background:#fff;color:#20160c;cursor:pointer;text-decoration:none;box-shadow:0 4px 0 var(--ink);display:inline-block}
@@ -92,8 +94,10 @@ function card(b) {
   const done = fought.has(b.code);
   return `<a class="boss ${done ? 'done' : ''}" href="${fightUrl(b.code)}" data-code="${esc(b.code)}">
     ${stage(b.code)}
-    <span class="nm">${esc(pretty(b.code))}</span>
-    <span class="go">${done ? 'Fight again' : 'Fight!'}</span></a>`;
+    <span class="nm">${esc(b.name || pretty(b.code))}</span>
+    ${b.name ? `<span class="cn">by ${esc(pretty(b.code))}</span>` : ''}
+    ${b.taunt ? `<span class="say">"${esc(b.taunt)}"</span>` : ''}
+    <span class="go" style="margin-top:auto">${done ? 'Fight again' : 'Fight!'}</span></a>`;
 }
 
 function featureHTML() {
@@ -119,12 +123,12 @@ function listHTML() {
   const students = bosses.filter(b => b.code !== FEATURED.code);
   if (status === 'error' || !students.length) return '<p class="empty">Student bosses are on the way. Fight Mr. N while you wait!</p>';
   const q = query.trim().toLowerCase().replace(/\s+/g, ' ');
-  const match = b => !q || pretty(b.code).includes(q) || b.code.includes(q);
+  const match = b => !q || pretty(b.code).includes(q) || b.code.includes(q) || String(b.name || '').toLowerCase().includes(q);
   const groups = (period === 'All' ? periods : [period]).map(p => {
     const list = students.filter(b => b.group === p && match(b)).sort((a, z) => a.code.localeCompare(z.code));
     return list.length ? `<section><h2>${esc(p)}<span class="count">${list.length} boss${list.length > 1 ? 'es' : ''}</span></h2><div class="grid">${list.map(card).join('')}</div></section>` : '';
   }).join('');
-  return `<input class="find" type="search" placeholder="Type a boss code name" aria-label="Type a boss code name" value="${esc(query)}">
+  return `<input class="find" type="search" placeholder="Search by boss or code name" aria-label="Search by boss or code name" value="${esc(query)}">
     ${periods.length > 1 ? `<div class="bar" role="toolbar" aria-label="Show one class period">
       ${['All', ...periods].map(p => `<button class="chip" data-p="${esc(p)}" aria-pressed="${p === period}">${p === 'All' ? 'All classes' : esc(p)}</button>`).join('')}
     </div>` : ''}

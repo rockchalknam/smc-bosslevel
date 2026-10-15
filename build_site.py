@@ -30,7 +30,7 @@ EXTRA_FILES = ["index.html", "offline.json", "appmanifest.json", "data.json", "s
 POSES = ["idle1", "idle2", "attack1", "attack2", "special"]
 
 # Teacher bosses: listed first in the Boss Picker, right after Normal Bowser, in this order.
-FEATURED = ["mr-n"]
+FEATURED = ["mr-nam"]
 
 def fetch_bytes(path, tries=4):
     url = BASE_URL + urllib.parse.quote(path)
@@ -171,7 +171,17 @@ def main(src, site):
     def period_of(code):
         m = re.search(r"-p([1-9])$", code)
         return int(m.group(1)) if m else None
-    json.dump({"gameVersion": version, "bosses": [{"code": c, "period": period_of(c)} for c in codes]},
+    def card_of(code):
+        # boss name + taunt from the Google Form, saved next to the zip as turned-in/<code>.json
+        info = {"code": code, "period": period_of(code)}
+        try:
+            extra = json.load(open(os.path.join(src, code + ".json"), encoding="utf-8"))
+            if str(extra.get("name", "")).strip(): info["name"] = str(extra["name"]).strip()[:24]
+            if str(extra.get("taunt", "")).strip(): info["taunt"] = str(extra["taunt"]).strip()[:60]
+        except Exception:
+            pass
+        return info
+    json.dump({"gameVersion": version, "bosses": [card_of(c) for c in codes]},
               open(os.path.join(bosses_dir, "index.json"), "w", encoding="utf-8"), indent=1)
     print(f"\nSite ready for {version}: {len(codes)} bosses ({len(ok)} built this run).")
     for c, why in failed: print(f"  needs a fix: {c}: {why}")
