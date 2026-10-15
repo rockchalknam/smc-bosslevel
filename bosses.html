@@ -57,17 +57,33 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:4px solid var(-
 .empty{background:var(--paper);color:var(--card-text);border:4px dashed var(--ink);border-radius:14px;padding:24px;font-weight:700;max-width:620px}
 .updated{margin-top:40px;font-weight:700;opacity:.8}
 .lava{position:fixed;left:0;right:0;bottom:0;height:30px;border-top:4px solid var(--ink);background:repeating-linear-gradient(90deg,var(--lava) 0 14px,#ffb33d 14px 18px)}
+.modal{position:fixed;inset:0;background:rgba(20,12,30,.7);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+.modal.open{display:flex}
+.box{background:#fff;color:#20160c;border:4px solid var(--ink);border-radius:16px;padding:24px;max-width:540px;width:100%;max-height:92vh;overflow:auto}
+.box h3{font:400 1.5rem/1.15 Bungee,Impact,sans-serif;margin:0 0 12px}
+.box p{margin:0 0 14px}
+.box .steps{background:#fff6d6;border:3px solid var(--ink);border-radius:10px;padding:12px 14px 12px 40px;font-weight:700;margin:0 0 14px}
+.box .steps li{margin:4px 0}
+.box textarea{width:100%;height:110px;font:600 .8rem ui-monospace,Menlo,monospace;border:3px solid var(--ink);border-radius:8px;padding:8px;margin-bottom:14px}
+.actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:flex-end}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 <div id="app"></div>
 <div class="lava" aria-hidden="true"></div>
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mh"><div class="box" id="box"></div></div>
 <script>
 /* ===== SETTINGS: edit these ===== */
 // Boss shown in the big box at the top. Use its code name (the zip name without .zip).
 // If no boss with this code is on the site yet, the box just stays hidden.
 const FEATURED = { code: 'mr-nam', button: 'Fight Mr. N', title: "Mr. N, the final boss", blurb: "Your teacher took over Bowser's castle. Can you stomp him? Try him out, then make a boss of your own in Boss Maker." };
+// The demo level for the featured boss: a short castle with Bowser's spot at the end.
+// To swap in a new level, replace everything between the backticks with its level code.
+const DEMO_FILE = 'Mr_N_Final_Exam.txt';
+const DEMO_LEVEL = `{"ver":"v8.beta37","style":2,"name":"Mr. N's Final Exam","authors":"Mr. N and VRMS VGD","start":{"map":"Castle Entrance","p1":{"X":1,"Y":17}},"maps":{"Castle Entrance":{"size":"50,22","layers":{"Objects":{"dat":"o,,0,0","objects":{"0":"o46,4,17,E[26,15,,,,1],T[MARIO! Mr. N took over the castle and assigned a FINAL EXAM! Stomp him 3 times to cancel it.][Mario, help!]","1":"o75,8,17,E[26,15,,,,1,!],T[Hit the ? Block for a mushroom. You will want it.][Tip]","2":"b2,12,14,C[i1]","3":"e1,20,17","4":"e1,27,17","5":"e1,34,17","6":"o46,40,17,2,E[26,15,,,,1],T[Mr. N is down this pipe. Good luck... you will need it.][Psst!]","7":"pi1,46,17,E[2]"}},"Tiles 1":{"dat":"t,,0,0","tilemaps":{"2_Castle":"100x4,50x7,750x-1,50x1,150x4"}},"Tiles 2":{"dat":"t,,0,0"}},"editL":"Objects","pal":0,"bgc":"000000","music":4,"mg":"2_castle,3,6","entryways":{"To Mr. N":"1,Objects,46.5,16.5,Boss Arrival,Mr. N's Classroom"}},"Mr. N's Classroom":{"size":"56,22","layers":{"Objects":{"dat":"o,,0,0","objects":{"0":"pi1,1,17,E[2]","1":"o46,5,17,3,E[26,15,,,,1],T[MR. N: Welcome to class! Pop quiz: can you stomp me 3 times? Grab my key to get out.][Mr. N]","2":"bs2,30,16,E[7,.k,3,3,,,48,400,1,2,50,,1,2,2],C[o28]","3":"o75,50,17,E[26,15,,,,1,!],T[Only Mr. N's key opens this door. Hold RUN to carry it, press UP at the door.][Locked]"}},"Tiles 1":{"dat":"t,,0,0","tilemaps":{"2_Castle":"168x4,56x7,784x-1,56x1,168x4","2_Blocks":"55x-1,40,55x-1,40,55x-1,40,55x-1,40,55x-1,40,55x-1,40,55x-1,40,55x-1,40,55x-1,40,55x-1,40,55x-1,40,55x-1,40,55x-1,40,55x-1,40,55x-1,40,55x-1,40,55x-1,40,55x-1,40,224x-1"}},"Tiles 2":{"dat":"t,,0,0"}},"editL":"Objects","pal":0,"bgc":"000000","music":4,"mg":"2_castle,3,6","destinations":{"Boss Arrival":"2,Objects,1.5,16.5"},"entryways":{"Exit Door":"5,Objects,52.5,17,Pass Arrival,You Passed,,2"}},"You Passed":{"size":"34,22","layers":{"Objects":{"dat":"o,,0,0","objects":{"0":"o46,6,17,2,E[26,15,,,,1],T[You beat Mr. N! The final exam is CANCELLED!][YAHOO!]","1":"o46,10,17,3,E[26,15,,,,1],T[Now make a boss of your own in Boss Maker. Can it beat Mr. N?][Your turn]","2":"o15,27,17,E[15,1,14,,1]"}},"Tiles 1":{"dat":"t,,0,0","tilemaps":{"2_Grass":"612x-1,34x1,102x4"}},"Tiles 2":{"dat":"t,,0,0"}},"editL":"Objects","pal":0,"bgc":"0063bd","music":1,"bg":"2_cloud1,1,6","mg":"2_cloud,1,6","fg":"2_hill2,1,6","destinations":{"Pass Arrival":"0,Objects,2,17"}}},"lives":5,"timer":600}`;
+// What players do in the game after the code is copied
+const PASTE_STEPS = ['Click Play Level.', 'Press Ctrl+V to paste the code (Cmd+V on a Mac).', 'Stomp Mr. N 3 times, grab his key, and open the door.'];
 // Boss Maker link for the "Make your own" button. Leave '' to hide it.
 const MAKER_URL = 'boss-maker.html';
 // Codes to hide without deleting them from the site (for example, a test boss).
@@ -111,7 +127,8 @@ function featureHTML() {
       <h3 id="fh">${esc(FEATURED.title)}</h3>
       <p>${esc(FEATURED.blurb)}</p>
       <div class="btns">
-        <a class="btn big" href="${fightUrl(f.code)}" data-code="${esc(f.code)}">${esc(FEATURED.button || 'Fight!')}</a>
+        <button class="btn big" data-demo="play">${esc(FEATURED.button || 'Fight!')}</button>
+        <button class="btn" data-demo="file">Download level file</button>
         ${MAKER_URL ? `<a class="btn" href="${esc(MAKER_URL)}" target="_blank" rel="noopener">Make your own boss</a>` : ''}
       </div>
     </div>
@@ -164,7 +181,40 @@ function render() {
   });
 }
 
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; } catch (e) {}
+  try {
+    const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select(); const ok = document.execCommand('copy'); ta.remove(); return ok;
+  } catch (e) { return false; }
+}
+function download(name, text) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+  a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+function openModal(html) {
+  document.getElementById('box').innerHTML = html;
+  document.getElementById('modal').classList.add('open');
+  (document.querySelector('#box [data-focus]') || document.querySelector('#box button')).focus();
+}
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+async function playDemo() {
+  const ok = await copyText(DEMO_LEVEL);
+  const steps = `<ol class="steps">${PASTE_STEPS.map(s => `<li>${esc(s)}</li>`).join('')}</ol>`;
+  const go = `<a class="btn big" href="${fightUrl(FEATURED.code)}" data-code="${esc(FEATURED.code)}" data-focus>Open the game</a>`;
+  openModal(ok
+    ? `<h3 id="mh">Mr. N's level is copied!</h3><p>Click <b>Open the game</b>. When it loads:</p>${steps}<div class="actions"><button class="btn" data-act="close">Close</button>${go}</div>`
+    : `<h3 id="mh">One extra step</h3><p>This computer didn't let us copy automatically. The code below is selected. Press <b>Ctrl+C</b> (Cmd+C on a Mac) to copy it.</p><textarea readonly>${esc(DEMO_LEVEL)}</textarea>${steps}<div class="actions"><button class="btn" data-act="close">Close</button>${go}</div>`);
+  const ta = document.querySelector('#box textarea'); if (ta) { ta.focus(); ta.select(); }
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 document.addEventListener('click', e => {
+  if (e.target.id === 'modal' || e.target.closest('[data-act="close"]')) { closeModal(); return; }
+  const d = e.target.closest('button[data-demo]');
+  if (d) { if (d.dataset.demo === 'play') playDemo(); else download(DEMO_FILE, DEMO_LEVEL); return; }
   const a = e.target.closest('a[data-code]');
   if (a) { remember(a.dataset.code); return; }
   const b = e.target.closest('button[data-p]');
