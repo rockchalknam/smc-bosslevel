@@ -2,137 +2,189 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Boss Browser</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VGD Boss Picker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tomorrow:wght@500;700&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
-/* Styled after the LSS Mod Loader's mod browser: glassy panels on a purple-to-teal glow, list rows, search + numbered pages. */
-:root{
-  --ink:#ffffff; --soft:#dcd3ff; --dim:rgba(255,255,255,.62);
-  --glass:rgba(35,0,132,.22); --glass-hover:rgba(212,56,255,.20); --edge:rgba(255,255,255,.24);
-  --list:rgba(0,255,255,.13); --row:rgba(255,255,255,.08);
-  --gold:#ffe14d; --go1:#ff5010; --go2:#ffc810;
-  --font:"Tomorrow", "Segoe UI", system-ui, sans-serif;
-  color-scheme:dark;
-}
-*{box-sizing:border-box}
-html{min-height:100%;background:#1b1150 linear-gradient(15deg,#10127c 0%,#3a1fa0 45%,#18c9cf 100%) fixed}
-body{margin:0;min-height:100vh;font-family:var(--font);font-weight:500;color:var(--ink);background:transparent}
-body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
-  background:repeating-linear-gradient(45deg,rgba(255,255,255,.035) 0 2px,transparent 2px 22px),
-             repeating-linear-gradient(-45deg,rgba(255,255,255,.035) 0 2px,transparent 2px 22px);}
-#page{width:min(900px,100%);margin:0 auto;padding-inline:16px;padding-block:28px 48px;display:flex;flex-direction:column;gap:20px;filter:drop-shadow(0 0 10px rgba(0,0,0,.6))}
-.title-bar{border-radius:20px;padding:20px;background:var(--glass);border:1px solid var(--edge);transition:background-color .8s ease;text-align:center}
-.title-bar:hover{background:var(--glass-hover)}
-h1{margin:0;font-size:clamp(20px,4vw,28px);font-weight:700;text-wrap:balance}
-.sub{margin:6px 0 0;color:var(--soft);font-size:14px}
-#search-bar{display:grid;grid-template-columns:1fr auto;width:min(420px,100%);margin:16px auto 0;border-radius:8px;box-shadow:0 0 4px 2px rgba(145,246,255,.32)}
-#search-bar:focus-within{box-shadow:0 0 4px 2px rgba(255,238,0,.36)}
-#search-input{font:inherit;color:#e6e6e6;padding:9px 10px;border:2px solid rgba(193,227,223,.92);border-right:0;border-radius:8px 0 0 8px;background:linear-gradient(22deg,rgba(0,0,0,.65),rgba(0,0,0,.3));min-width:0}
-#search-input:focus{outline:none;border-color:rgba(255,234,0,.92)}
-#search-input::placeholder{color:#dfbdff;opacity:.55}
-.btn{font:inherit;font-weight:700;cursor:pointer;color:#fff;border:2px solid rgba(255,255,255,.75);border-radius:6px;padding:6px 12px;background:linear-gradient(40deg,rgba(120,90,220,.75),rgba(170,130,255,.75))}
-.btn:hover{background:linear-gradient(40deg,rgba(212,56,255,.8),rgba(255,140,220,.8))}
-.btn:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
-#search-button{border-radius:0 8px 8px 0;padding:6px 14px}
-#list-wrap{border-radius:20px;padding:20px;background:var(--list)}
-#status{text-align:center;margin:6px 0}
-#status.loading{text-decoration:underline;animation:loadColor 1s infinite alternate-reverse linear}
-@keyframes loadColor{from{color:var(--go1)}to{color:var(--go2)}}
-#boss-list{display:grid;border:1px solid rgba(255,255,255,.4);border-radius:6px;background:var(--row);overflow:hidden}
-#boss-list:empty{display:none}
-.list-item{display:flex;align-items:center;gap:14px;padding:8px 12px;transition:background-color .6s ease;border-top:1px solid rgba(255,255,255,.12)}
-.list-item:first-child{border-top:0}
-.list-item:hover{background:rgba(255,255,255,.10)}
-.thumb{width:64px;height:64px;flex:none;display:grid;place-items:end center;border-radius:6px;background:rgba(0,0,0,.35);overflow:hidden}
-.thumb img{max-width:60px;max-height:60px;image-rendering:pixelated}
-.thumb .orig{place-self:center;font-size:11px;color:var(--dim);text-align:center;line-height:1.2}
-.info{flex:1;min-width:0}
-.name{font-size:17px;font-weight:700;overflow-wrap:anywhere}
-.meta{font-size:13px;color:var(--dim)}
-a.fight{text-decoration:none;flex:none}
-a.fight .btn{display:inline-block;background:linear-gradient(40deg,var(--go1),var(--go2));border-color:rgba(255,255,255,.85);color:#2a1000}
-a.fight .btn.plain{background:linear-gradient(40deg,rgba(146,146,146,.7),rgba(190,190,190,.7));color:#fff}
-#pagination{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;padding-top:14px}
-#pagination .btn{min-width:38px;aspect-ratio:1/1;padding:4px}
-#pagination .btn[aria-current="page"]{background:linear-gradient(40deg,var(--go1),var(--go2));color:#2a1000}
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* Same look as the Class Arcade, moved to Bowser's castle at night */
+:root{--sky:#2a1f4d;--sky2:#4b3a86;--block:#ffcc33;--block-edge:#c98a00;--ink:#1a1020;--brick:#d9432f;--lava:#ff7a2f;--grass:#46b04a;--stone:#5a5478;--paper:#fff;--text:#fff;--card-text:#20160c;--focus:#ffd84d}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;min-height:100vh;font:400 1.15rem/1.45 Nunito,"Segoe UI",system-ui,sans-serif;color:var(--text);background:linear-gradient(var(--sky2),var(--sky) 360px) fixed,var(--sky)}
+.wrap{max-width:1100px;margin:0 auto;padding:28px 16px 120px}
+h1{font:400 clamp(2.4rem,7vw,4.6rem)/1 Bungee,Impact,"Arial Black",sans-serif;margin:0;color:var(--block);-webkit-text-stroke:3px var(--ink);paint-order:stroke fill;text-shadow:0 6px 0 var(--ink)}
+.sub{margin:14px 0 0;font-weight:800;font-size:1.25rem}
+.how{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin:26px 0 0;padding:0;list-style:none;counter-reset:s}
+.how li{counter-increment:s;background:var(--paper);color:var(--card-text);border:3px solid var(--ink);border-radius:12px;padding:14px 16px 14px 62px;position:relative;font-weight:700}
+.how li::before{content:counter(s);position:absolute;left:14px;top:12px;width:36px;height:36px;border-radius:50%;background:var(--brick);color:#fff;font:400 1.2rem/36px Bungee,sans-serif;text-align:center;border:3px solid var(--ink)}
+.note{margin:12px 0 0;font-weight:700;opacity:.9}
+h2{font:400 1.6rem Bungee,Impact,sans-serif;color:#fff;-webkit-text-stroke:2px var(--ink);paint-order:stroke fill;text-shadow:0 3px 0 var(--ink);margin:34px 0 14px}
+h2 .count{font:800 1rem Nunito,sans-serif;-webkit-text-stroke:0;text-shadow:none;opacity:.85;margin-left:8px}
+/* featured */
+.feature{display:grid;grid-template-columns:auto minmax(0,1fr);gap:22px;align-items:center;background:var(--paper);color:var(--card-text);border:4px solid var(--ink);border-radius:16px;padding:20px;box-shadow:0 6px 0 var(--ink)}
+@media (max-width:640px){.feature{grid-template-columns:1fr}}
+.feature .stage{width:200px;height:200px}
+.tag{display:inline-block;font:800 .9rem Nunito,sans-serif;background:var(--grass);color:#fff;border:3px solid var(--ink);border-radius:999px;padding:2px 12px;margin-bottom:8px}
+.feature h3{font:400 clamp(1.5rem,3.5vw,2rem)/1.1 Bungee,Impact,sans-serif;margin:0 0 10px}
+.feature p{margin:0 0 14px}
+.btns{display:flex;flex-wrap:wrap;gap:12px}
+/* boss stage (thumbnail area) */
+.stage{display:grid;place-items:end center;border:3px solid var(--ink);border-radius:10px;overflow:hidden;padding-bottom:10px;
+  background:linear-gradient(transparent calc(100% - 10px),var(--stone) calc(100% - 10px) calc(100% - 7px),#3b355a calc(100% - 7px)),repeating-linear-gradient(0deg,#3b355a 0 7px,#332e4f 7px 8px),#332e4f}
+.stage img{image-rendering:pixelated;image-rendering:crisp-edges;max-width:90%;max-height:85%}
+.stage .none{place-self:center;font:400 2.4rem Bungee,sans-serif;color:var(--block)}
+/* search + period chips */
+.find{display:block;width:100%;max-width:520px;margin:6px 0 12px;font:800 1.25rem Nunito,sans-serif;padding:14px 18px;border:4px solid var(--ink);border-radius:12px;background:var(--paper);color:var(--card-text)}
+.bar{display:flex;flex-wrap:wrap;gap:10px}
+.chip{font:800 1rem Nunito,sans-serif;padding:8px 14px;border-radius:999px;border:3px solid var(--ink);background:var(--paper);color:var(--card-text);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--brick);color:#fff}
+/* boss cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px}
+.boss{text-decoration:none;border:4px solid var(--ink);border-radius:12px;background:var(--block);color:var(--card-text);padding:12px;font-family:inherit;box-shadow:inset 0 -6px 0 var(--block-edge),0 6px 0 var(--ink);transition:transform .08s,box-shadow .08s;display:flex;flex-direction:column;gap:8px}
+.boss:hover{transform:translateY(-2px);box-shadow:inset 0 -6px 0 var(--block-edge),0 8px 0 var(--ink)}
+.boss:active{transform:translateY(5px);box-shadow:inset 0 -6px 0 var(--block-edge),0 1px 0 var(--ink)}
+.boss .stage{height:130px}
+.boss .nm{font:400 1.2rem/1.1 Bungee,Impact,sans-serif;word-break:break-word}
+.boss .go{align-self:flex-start;font-weight:800;font-size:1rem;background:var(--brick);color:#fff;border:3px solid var(--ink);border-radius:8px;padding:3px 12px}
+.boss.done{background:var(--grass);color:#fff;box-shadow:inset 0 -6px 0 #2e7d32,0 6px 0 var(--ink)}
+.btn{font:800 1.15rem Nunito,sans-serif;padding:12px 20px;border:3px solid var(--ink);border-radius:12px;background:#fff;color:#20160c;cursor:pointer;text-decoration:none;box-shadow:0 4px 0 var(--ink);display:inline-block}
+.btn.big{background:var(--brick);color:#fff}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:4px solid var(--focus);outline-offset:3px}
+.empty{background:var(--paper);color:var(--card-text);border:4px dashed var(--ink);border-radius:14px;padding:24px;font-weight:700;max-width:620px}
+.updated{margin-top:40px;font-weight:700;opacity:.8}
+.lava{position:fixed;left:0;right:0;bottom:0;height:30px;border-top:4px solid var(--ink);background:repeating-linear-gradient(90deg,var(--lava) 0 14px,#ffb33d 14px 18px)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-<div id="page">
-  <div class="title-bar">
-    <h1>Boss Browser</h1>
-    <p class="sub">Pick a boss, then place Bowser in any level. Your pick shows up in his place.</p>
-    <form id="search-bar" role="search">
-      <input id="search-input" type="search" placeholder="Search bosses by code name..." aria-label="Search bosses">
-      <button id="search-button" class="btn" type="submit">Search</button>
-    </form>
-  </div>
-  <div id="list-wrap">
-    <p id="status" class="loading">Loading...</p>
-    <div id="boss-list"></div>
-    <nav id="pagination" aria-label="Pages"></nav>
-  </div>
-</div>
+<div id="app"></div>
+<div class="lava" aria-hidden="true"></div>
 <script>
-(function(){
-  const PER_PAGE = 10;
-  const list = document.getElementById("boss-list"), pag = document.getElementById("pagination");
-  const status = document.getElementById("status"), input = document.getElementById("search-input");
-  let bosses = [];
+/* ===== SETTINGS: edit these ===== */
+// Boss shown in the big box at the top. Use its code name (the zip name without .zip).
+// If no boss with this code is on the site yet, the box just stays hidden.
+const FEATURED = { code: 'mr-nam', button: 'Fight Mr. N', title: "Mr. N, the final boss", blurb: "Your teacher took over Bowser's castle. Can you stomp him? Try him out, then make a boss of your own in Boss Maker." };
+// Boss Maker link for the "Make your own" button. Leave '' to hide it.
+const MAKER_URL = 'boss-maker.html';
+// Codes to hide without deleting them from the site (for example, a test boss).
+const HIDDEN = [];
+/* ================================ */
 
-  function params(){ const p = new URLSearchParams(location.search); return { page: Math.max(1, parseInt(p.get("page")) || 1), search: (p.get("search") || "").trim() }; }
-  function setParams(page, search, push){
-    const url = location.pathname + "?page=" + page + "&search=" + encodeURIComponent(search);
-    (push ? history.pushState : history.replaceState).call(history, null, "", url);
-    render();
-  }
-  function row(code, href, thumb, meta, plain){
-    const r = document.createElement("div"); r.className = "list-item";
-    const t = document.createElement("div"); t.className = "thumb";
-    if (thumb){ const i = document.createElement("img"); i.src = thumb; i.alt = ""; i.loading = "lazy"; t.appendChild(i); }
-    else { const o = document.createElement("span"); o.className = "orig"; o.textContent = "the original"; t.appendChild(o); }
-    const info = document.createElement("div"); info.className = "info";
-    const n = document.createElement("div"); n.className = "name"; n.textContent = code;
-    const m = document.createElement("div"); m.className = "meta"; m.textContent = meta;
-    info.append(n, m);
-    const a = document.createElement("a"); a.className = "fight"; a.href = href;
-    const b = document.createElement("span"); b.className = "btn" + (plain ? " plain" : ""); b.textContent = plain ? "Play" : "Fight";
-    a.appendChild(b);
-    r.append(t, info, a);
-    return r;
-  }
-  function render(){
-    const { page, search } = params();
-    if (document.activeElement !== input) input.value = search;
-    const term = search.toLowerCase();
-    const matches = bosses.filter(b => !term || b.code.includes(term));
-    const pages = Math.max(1, Math.ceil(matches.length / PER_PAGE));
-    const cur = Math.min(page, pages);
-    list.innerHTML = ""; pag.innerHTML = "";
-    if (cur === 1 && !term) list.appendChild(row("Normal Bowser", "./?boss=", null, "The original boss", true));
-    for (const b of matches.slice((cur - 1) * PER_PAGE, cur * PER_PAGE))
-      list.appendChild(row(b.code, "./?boss=" + encodeURIComponent(b.code), "bosses/" + b.code + "/thumb.png", "Student boss"));
-    status.className = "";
-    status.textContent = !bosses.length ? "No student bosses yet. Check back after your teacher adds them."
-      : !matches.length ? "Couldn't find any bosses for “" + search + "”"
-      : matches.length + " boss" + (matches.length === 1 ? "" : "es") + (term ? " found" : "");
-    if (pages > 1) for (let i = 1; i <= pages; i++){
-      const btn = document.createElement("button"); btn.className = "btn"; btn.type = "button"; btn.textContent = i;
-      if (i === cur) btn.setAttribute("aria-current", "page");
-      btn.addEventListener("click", () => setParams(i, search, true));
-      pag.appendChild(btn);
-    }
-  }
-  document.getElementById("search-bar").addEventListener("submit", e => { e.preventDefault(); setParams(1, input.value.trim(), true); });
-  input.addEventListener("input", () => setParams(1, input.value.trim(), false));
-  window.addEventListener("popstate", render);
-  fetch("bosses/index.json", { cache: "no-cache" }).then(r => r.json()).then(d => { bosses = (d.bosses || []).sort((a, b) => a.code.localeCompare(b.code)); })
-    .catch(() => {}).finally(render);
-})();
+const ORD = n => n + ({1:'st',2:'nd',3:'rd'}[n] || 'th');
+let bosses = [], periods = [], status = 'loading', version = '', period = 'All', query = '';
+// remembers which bosses this browser tab already fought, so those cards turn green
+let fought = new Set();
+try { fought = new Set(JSON.parse(sessionStorage.getItem('fought') || '[]')); } catch (e) {}
+function remember(code) { fought.add(code); try { sessionStorage.setItem('fought', JSON.stringify([...fought])); } catch (e) {} }
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// "dragon-queen-p3" -> "dragon queen"
+const pretty = code => code.replace(/-p[1-9]$/, '').replace(/-/g, ' ');
+const fightUrl = code => './?boss=' + encodeURIComponent(code);
+const thumb = code => `bosses/${encodeURIComponent(code)}/thumb.png`;
+
+function stage(code, big) {
+  // thumbnails are the real in-game size; scale by whole numbers so pixels stay sharp
+  return `<span class="stage"><img src="${thumb(code)}" alt="" data-scale="${big ? 3 : 2}" onerror="this.outerHTML='<span class=none>?</span>'"></span>`;
+}
+function card(b) {
+  const done = fought.has(b.code);
+  return `<a class="boss ${done ? 'done' : ''}" href="${fightUrl(b.code)}" data-code="${esc(b.code)}">
+    ${stage(b.code)}
+    <span class="nm">${esc(pretty(b.code))}</span>
+    <span class="go">${done ? 'Fight again' : 'Fight!'}</span></a>`;
+}
+
+function featureHTML() {
+  const f = bosses.find(b => b.code === FEATURED.code);
+  if (!f) return '';
+  return `<h2>Featured boss</h2>
+  <section class="feature" aria-labelledby="fh">
+    ${stage(f.code, true)}
+    <div>
+      <span class="tag">Teacher demo</span>
+      <h3 id="fh">${esc(FEATURED.title)}</h3>
+      <p>${esc(FEATURED.blurb)}</p>
+      <div class="btns">
+        <a class="btn big" href="${fightUrl(f.code)}" data-code="${esc(f.code)}">${esc(FEATURED.button || 'Fight!')}</a>
+        ${MAKER_URL ? `<a class="btn" href="${esc(MAKER_URL)}" target="_blank" rel="noopener">Make your own boss</a>` : ''}
+      </div>
+    </div>
+  </section>`;
+}
+
+function listHTML() {
+  if (status === 'loading') return '<p class="empty">Loading bosses...</p>';
+  const students = bosses.filter(b => b.code !== FEATURED.code);
+  if (status === 'error' || !students.length) return '<p class="empty">Student bosses are on the way. Fight Mr. N while you wait!</p>';
+  const q = query.trim().toLowerCase().replace(/\s+/g, ' ');
+  const match = b => !q || pretty(b.code).includes(q) || b.code.includes(q);
+  const groups = (period === 'All' ? periods : [period]).map(p => {
+    const list = students.filter(b => b.group === p && match(b)).sort((a, z) => a.code.localeCompare(z.code));
+    return list.length ? `<section><h2>${esc(p)}<span class="count">${list.length} boss${list.length > 1 ? 'es' : ''}</span></h2><div class="grid">${list.map(card).join('')}</div></section>` : '';
+  }).join('');
+  return `<input class="find" type="search" placeholder="Type a boss code name" aria-label="Type a boss code name" value="${esc(query)}">
+    ${periods.length > 1 ? `<div class="bar" role="toolbar" aria-label="Show one class period">
+      ${['All', ...periods].map(p => `<button class="chip" data-p="${esc(p)}" aria-pressed="${p === period}">${p === 'All' ? 'All classes' : esc(p)}</button>`).join('')}
+    </div>` : ''}
+    ${groups || '<p class="empty" style="margin-top:20px">No boss by that name yet. Check the spelling, or try just the first few letters.</p>'}`;
+}
+
+function render() {
+  document.getElementById('app').innerHTML = `<div class="wrap">
+    <h1>Boss Picker</h1>
+    <p class="sub">Bosses made by View Ridge Video Game Design students. Pick one and it takes Bowser's place.</p>
+    <ol class="how">
+      <li>Find your class period and click a boss.</li>
+      <li>The game opens with that boss in Bowser's spot.</li>
+      <li>Paste a level code or build a level with Bowser in it. Fight!</li>
+    </ol>
+    <p class="note">Works best in Chrome or Edge on a laptop or desktop with a keyboard. To switch bosses, come back here and pick another one.</p>
+    ${featureHTML()}
+    <h2>Student bosses</h2>
+    ${listHTML()}
+    <p class="note"><a class="btn" href="./?boss=">Play with normal Bowser</a></p>
+    ${version ? `<p class="updated">Game version ${esc(version)}.</p>` : ''}
+  </div>`;
+  // whole-number zoom for each thumbnail once it loads
+  document.querySelectorAll('.stage img').forEach(img => {
+    const fit = () => {
+      const box = img.parentElement, max = +img.dataset.scale;
+      const fitH = (box.clientHeight - 14) / img.naturalHeight, fitW = (box.clientWidth - 10) / img.naturalWidth;
+      let s = Math.min(max, Math.floor(Math.min(fitH, fitW)));
+      if (s < 1) s = 1 / Math.ceil(1 / Math.min(fitH, fitW));  // too big: shrink to 1/2, 1/3...
+      img.style.width = Math.round(img.naturalWidth * s) + 'px'; img.style.height = Math.round(img.naturalHeight * s) + 'px'; img.style.maxWidth = 'none'; img.style.maxHeight = 'none';
+    };
+    img.complete && img.naturalWidth ? fit() : img.addEventListener('load', fit);
+  });
+}
+
+document.addEventListener('click', e => {
+  const a = e.target.closest('a[data-code]');
+  if (a) { remember(a.dataset.code); return; }
+  const b = e.target.closest('button[data-p]');
+  if (b) { period = b.dataset.p; render(); }
+});
+document.addEventListener('input', e => {
+  if (!e.target.classList.contains('find')) return;
+  query = e.target.value; const pos = e.target.selectionStart; render();
+  const s = document.querySelector('.find'); s.focus(); s.setSelectionRange(pos, pos);
+});
+window.addEventListener('pageshow', () => { if (status !== 'loading') render(); });
+
+render();
+fetch('bosses/index.json?t=' + Date.now(), { cache: 'no-store' })
+  .then(r => { if (!r.ok) throw 0; return r.json(); })
+  .then(d => {
+    version = d.gameVersion || '';
+    bosses = (d.bosses || []).filter(b => !HIDDEN.includes(b.code))
+      .map(b => Object.assign({}, b, { group: b.period ? ORD(b.period) + ' period' : 'Guest bosses' }));
+    const order = g => g === 'Guest bosses' ? 99 : parseInt(g, 10);
+    periods = [...new Set(bosses.filter(b => b.code !== FEATURED.code).map(b => b.group))].sort((a, z) => order(a) - order(z));
+    status = 'ready'; render();
+  })
+  .catch(() => { status = 'error'; render(); });
 </script>
 </body>
 </html>
