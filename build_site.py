@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Boss Picker site builder: one hosted copy of Super Mario Construct where every
-student's boss runs at full size, picked with a link like  .../?boss=ella
+student's boss runs at full size, picked with a link like  .../?boss=mr-n
 
     python tools/build_site.py turned-in site
 
@@ -28,6 +28,9 @@ EXTRA_FILES = ["index.html", "offline.json", "appmanifest.json", "data.json", "s
                "scripts/offlineclient.js", "scripts/main.js", "scripts/register-sw.js",
                "scripts/modernjscheck.js", "scripts/supportcheck.js"]
 POSES = ["idle1", "idle2", "attack1", "attack2", "special"]
+
+# Teacher bosses: listed first in the Boss Picker, right after Normal Bowser, in this order.
+FEATURED = ["mr-n"]
 
 def fetch_bytes(path, tries=4):
     url = BASE_URL + urllib.parse.quote(path)
@@ -163,8 +166,12 @@ def main(src, site):
                 print("  skipped:", e); failed.append((code, str(e)))
             except Exception as e:
                 print("  FAILED:", e); failed.append((code, repr(e)))
-    codes = sorted(c for c in os.listdir(bosses_dir) if os.path.exists(os.path.join(bosses_dir, c, "boss.json")))
-    json.dump({"gameVersion": version, "bosses": [{"code": c} for c in codes]},
+    codes = sorted((c for c in os.listdir(bosses_dir) if os.path.exists(os.path.join(bosses_dir, c, "boss.json"))),
+                   key=lambda c: (FEATURED.index(c) if c in FEATURED else len(FEATURED), c))
+    def period_of(code):
+        m = re.search(r"-p([1-9])$", code)
+        return int(m.group(1)) if m else None
+    json.dump({"gameVersion": version, "bosses": [{"code": c, "period": period_of(c)} for c in codes]},
               open(os.path.join(bosses_dir, "index.json"), "w", encoding="utf-8"), indent=1)
     print(f"\nSite ready for {version}: {len(codes)} bosses ({len(ok)} built this run).")
     for c, why in failed: print(f"  needs a fix: {c}: {why}")
