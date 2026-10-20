@@ -3,6 +3,8 @@ name: Build Boss Picker site
 on:
   push:
     branches: [main]
+    paths-ignore:
+        - levels.json
   workflow_dispatch:
   schedule:
     - cron: "0 13 * * 1"   # every Monday, picks up LSS game updates
