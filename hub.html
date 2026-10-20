@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Herons Mario Hub</title>
+<meta name="description" content="Play Super Mario Construct levels and choose custom bosses created by View Ridge students.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 64 64%27%3E%3Crect width=%2764%27 height=%2764%27 rx=%2712%27 fill=%27%231f6f8b%27/%3E%3Ctext x=%2732%27 y=%2747%27 text-anchor=%27middle%27 font-family=%27sans-serif%27 font-size=%2744%27 font-weight=%27bold%27 fill=%27white%27%3EH%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--sky:#6fcaf0;--sky2:#bfe9fb;--block:#ffcc33;--block-edge:#c98a00;--ink:#2b1a0e;--brick:#d9432f;--grass:#46b04a;--dirt:#b8743c;--heron:#1f6f8b;--paper:#fff;--card:#20160c;--text:#20160c;--focus:#1b3fd1;--stone:#5a5478}
+@media (prefers-color-scheme:dark){:root{--sky:#1b2556;--sky2:#2c3a7a;--paper:#1f2748;--text:#fff;--focus:#ffd84d}}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;min-height:100vh;font:400 1.15rem/1.45 Nunito,"Segoe UI",system-ui,sans-serif;color:var(--text);background:linear-gradient(var(--sky2),var(--sky) 320px) fixed,var(--sky)}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 16px 120px}
+.kicker{display:inline-block;font:400 1rem Bungee,sans-serif;background:var(--heron);color:#fff;border:3px solid var(--ink);border-radius:999px;padding:2px 14px;margin-bottom:10px}
+h1{font:400 clamp(2.1rem,6.5vw,4.2rem)/1 Bungee,Impact,"Arial Black",sans-serif;margin:0;color:var(--block);-webkit-text-stroke:3px var(--ink);paint-order:stroke fill;text-shadow:0 6px 0 var(--ink)}
+.sub{margin:14px 0 0;font-weight:800;font-size:1.2rem}
+h2{font:400 1.5rem Bungee,Impact,sans-serif;color:#fff;-webkit-text-stroke:2px var(--ink);paint-order:stroke fill;text-shadow:0 3px 0 var(--ink);margin:30px 0 12px}
+h2 .count{font:800 1rem Nunito,sans-serif;-webkit-text-stroke:0;text-shadow:none;margin-left:8px}
+/* boss bar */
+.bossbar{margin:22px 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:14px;background:var(--paper);color:var(--text);border:4px solid var(--ink);border-radius:14px;padding:10px 14px;box-shadow:0 5px 0 var(--ink)}
+@media (min-width:700px){.bossbar{position:sticky;top:8px;z-index:5}}
+.bossbar .stage{width:64px;height:64px;flex:none}
+.bossbar .who{flex:1 1 160px;min-width:0}
+.bossbar .lbl{font-weight:800;font-size:.9rem;opacity:.8}
+.bossbar .nm{font:400 1.3rem/1.1 Bungee,Impact,sans-serif;word-break:break-word}
+/* tabs */
+.tabs{display:flex;gap:10px;margin:22px 0 0;flex-wrap:wrap}
+.tab{font:400 1.15rem Bungee,Impact,sans-serif;padding:10px 18px;border:4px solid var(--ink);border-radius:12px;background:var(--paper);color:var(--text);cursor:pointer;box-shadow:0 4px 0 var(--ink)}
+.tab[aria-selected="true"]{background:var(--brick);color:#fff}
+.how{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:18px 0 0;padding:0;list-style:none;counter-reset:s}
+.how li{counter-increment:s;background:var(--paper);border:3px solid var(--ink);border-radius:12px;padding:12px 14px 12px 58px;position:relative;font-weight:700}
+.how li::before{content:counter(s);position:absolute;left:12px;top:10px;width:34px;height:34px;border-radius:50%;background:var(--heron);color:#fff;font:400 1.1rem/34px Bungee,sans-serif;text-align:center;border:3px solid var(--ink)}
+.note{margin:12px 0 0;font-weight:700;opacity:.85}
+/* filters */
+.find{display:block;width:100%;max-width:520px;margin:18px 0 12px;font:800 1.2rem Nunito,sans-serif;padding:12px 16px;border:4px solid var(--ink);border-radius:12px;background:var(--paper);color:var(--text)}
+.bar{display:flex;flex-wrap:wrap;gap:10px}
+.chip{font:800 1rem Nunito,sans-serif;padding:8px 14px;border-radius:999px;border:3px solid var(--ink);background:var(--paper);color:var(--text);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--brick);color:#fff}
+.chip.bf[aria-pressed="true"]{background:var(--heron)}
+/* level cards */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}
+.lvl{text-align:left;cursor:pointer;border:4px solid var(--ink);border-radius:12px;background:var(--block);color:#20160c;padding:14px;min-height:120px;font-family:inherit;box-shadow:inset 0 -6px 0 var(--block-edge),0 6px 0 var(--ink);transition:transform .08s,box-shadow .08s;display:flex;flex-direction:column;gap:6px;text-decoration:none}
+.lvl:hover{transform:translateY(-2px);box-shadow:inset 0 -6px 0 var(--block-edge),0 8px 0 var(--ink)}
+.lvl:active{transform:translateY(5px);box-shadow:inset 0 -6px 0 var(--block-edge),0 1px 0 var(--ink)}
+.lvl .nm{font:400 1.3rem/1.1 Bungee,Impact,sans-serif;word-break:break-word}
+.lvl .tt{font-weight:700;font-size:1rem;opacity:.85}
+.lvl .row{margin-top:auto;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.go{font-weight:800;font-size:1rem;background:var(--brick);color:#fff;border:3px solid var(--ink);border-radius:8px;padding:3px 12px}
+.badge{font-weight:800;font-size:.85rem;background:#3b355a;color:#ffcc33;border:3px solid var(--ink);border-radius:8px;padding:2px 8px}
+.lvl.done{background:var(--grass);color:#fff;box-shadow:inset 0 -6px 0 #2e7d32,0 6px 0 var(--ink)}
+/* boss cards */
+.stage{display:grid;place-items:end center;border:3px solid var(--ink);border-radius:10px;overflow:hidden;padding-bottom:8px;
+  background:linear-gradient(transparent calc(100% - 8px),var(--stone) calc(100% - 8px) calc(100% - 5px),#3b355a calc(100% - 5px)),repeating-linear-gradient(0deg,#3b355a 0 7px,#332e4f 7px 8px),#332e4f}
+.stage img{image-rendering:pixelated;image-rendering:crisp-edges;max-width:90%;max-height:85%}
+.stage .none{place-self:center;font:400 1.8rem Bungee,sans-serif;color:var(--block)}
+.bgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px}
+.boss{cursor:pointer;text-align:left;border:4px solid var(--ink);border-radius:12px;background:var(--block);color:#20160c;padding:12px;font-family:inherit;box-shadow:inset 0 -6px 0 var(--block-edge),0 6px 0 var(--ink);display:flex;flex-direction:column;gap:8px;transition:transform .08s}
+.boss:hover{transform:translateY(-2px)}
+.boss .stage{height:120px}
+.boss .nm{font:400 1.15rem/1.1 Bungee,Impact,sans-serif;word-break:break-word}
+.boss .cn{font-weight:800;font-size:.85rem;opacity:.75;margin-top:-4px}
+.boss .say{font-style:italic;font-weight:700;font-size:.95rem;line-height:1.3}
+.boss[aria-pressed="true"]{background:var(--heron);color:#fff;box-shadow:inset 0 -6px 0 #134a5d,0 6px 0 var(--ink)}
+.boss[aria-pressed="true"] .go{background:var(--grass)}
+.btn{font:800 1.1rem Nunito,sans-serif;padding:10px 18px;border:3px solid var(--ink);border-radius:12px;background:#fff;color:#20160c;cursor:pointer;text-decoration:none;box-shadow:0 4px 0 var(--ink);display:inline-block}
+.btn.big{background:var(--brick);color:#fff}
+.btn.teal{background:var(--heron);color:#fff}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+button:focus-visible,input:focus-visible,a:focus-visible{outline:4px solid var(--focus);outline-offset:3px}
+.empty{background:var(--paper);border:4px dashed var(--ink);border-radius:14px;padding:22px;font-weight:700;max-width:640px}
+.updated{margin-top:36px;font-weight:700;opacity:.8}
+.ground{position:fixed;left:0;right:0;bottom:0;height:34px;border-top:4px solid var(--ink);background:linear-gradient(var(--grass) 0 10px,transparent 10px),repeating-conic-gradient(var(--dirt) 0 25%,#a0622e 0 50%) 0 10px/24px 24px}
+.modal{position:fixed;inset:0;background:rgba(20,12,4,.65);display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+.modal.open{display:flex}
+.box{background:#fff;color:#20160c;border:4px solid var(--ink);border-radius:16px;padding:22px;max-width:560px;width:100%;max-height:92vh;overflow:auto}
+.box h3{font:400 1.45rem/1.15 Bungee,Impact,sans-serif;margin:0 0 12px}
+.box p{margin:0 0 14px}
+.box .steps{background:#fff6d6;border:3px solid var(--ink);border-radius:10px;padding:12px 14px 12px 40px;font-weight:700;margin:0 0 14px}
+.box .steps li{margin:4px 0}
+.box textarea{width:100%;height:110px;font:600 .8rem ui-monospace,Menlo,monospace;border:3px solid var(--ink);border-radius:8px;padding:8px;margin-bottom:14px}
+.choice{display:grid;gap:12px;margin:0 0 14px}
+.choice button{text-align:left;font:700 1.05rem Nunito,sans-serif;padding:12px 14px;border:3px solid var(--ink);border-radius:12px;background:#fff6d6;color:#20160c;cursor:pointer;box-shadow:0 4px 0 var(--ink)}
+.choice button b{display:block;font:400 1.15rem Bungee,Impact,sans-serif;margin-bottom:2px}
+.actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:flex-end}
+.toast{position:fixed;left:50%;bottom:52px;transform:translateX(-50%);background:var(--heron);color:#fff;font-weight:800;border:3px solid var(--ink);border-radius:12px;padding:10px 18px;z-index:20;display:none;max-width:calc(100% - 32px);text-align:center}
+.toast.show{display:block}
+.status{margin:18px 0;background:var(--paper);border:3px solid var(--ink);border-radius:12px;padding:14px 16px;font-weight:700}
+.status p{margin:0 0 10px}.status p:last-child{margin-bottom:0}
+.status.error{border-color:#b94037}.status.error strong{display:block;margin-bottom:6px}
+.status details{font-size:.9rem;margin-top:12px}.status summary{cursor:pointer}.status code{display:block;overflow-wrap:anywhere;margin:8px 0;font-size:.85rem}
+.list-tools{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:18px 0 0}
+.list-tools p{margin:0;font-weight:800}.btn:disabled{opacity:.6;cursor:wait}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<noscript><p class="status">JavaScript is needed to display student levels. Please ask your teacher for help enabling it for this site.</p></noscript>
+<div class="ground" aria-hidden="true"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mh"><div class="box" id="box"></div></div>
+<script>
+/* ===== SETTINGS: edit these ===== */
+// The build publishes levels.json beside hub.html. Keep this relative URL.
+const API_URL = './levels.json';
+// Used only if the list on this site fails; student devices do not depend on it.
+const BACKUP_API_URL = 'https://raw.githubusercontent.com/rockchalknam/smc-bosslevel/main/levels.json';
+const REQUEST_TIMEOUT_MS = 12000;
+const SCHOOL = 'View Ridge Herons';
+// Students whose level lives somewhere else. Example: { name: 'Kaylena S.', period: 1, title: '', url: 'https://...' }
+const LINK_LEVELS = [];
+// Codes to hide without deleting them (test bosses, etc.)
+const HIDDEN_BOSSES = [];
+/* ================================ */
+
+const ORD = n => n + ((n % 100 >= 11 && n % 100 <= 13) ? 'th' : ({1:'st',2:'nd',3:'rd'}[n % 10] || 'th'));
+const periodOf = p => { const m = String(p == null ? '' : p).match(/\d+/); return m ? ORD(+m[0]) + ' period' : 'Guests'; };
+const pOrder = g => g === 'Guests' ? 99 : parseInt(g, 10);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pretty = code => String(code || '').replace(/-p[1-9]$/, '').replace(/-/g, ' ');
+const firstName = n => String(n).split(' ')[0];
+const hasBowser = code => /"bs2,/.test(code || '');
+const gameUrl = boss => './?boss=' + encodeURIComponent(boss || '');
+const thumb = code => `bosses/${encodeURIComponent(code)}/thumb.png`;
+const ss = { get(k, d) { try { const v = sessionStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+             set(k, v) { try { sessionStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
+
+let levels = [], lvPeriods = [], lvStatus = 'loading', updated = null;
+let bosses = [], bsPeriods = [], bsStatus = 'loading', version = '';
+let lvErrors = [], bsErrors = [], lvSource = '', lvRequest = 0, bsRequest = 0;
+let lvLoadingNote = 'Loading student levels…';
+let tab = ss.get('tab', 'levels') === 'bosses' ? 'bosses' : 'levels';
+let lvPeriod = 'All', bsPeriod = 'All', query = '', bossOnly = false;
+let boss = ss.get('boss', '');      // '' = normal Bowser
+if (typeof boss !== 'string') boss = '';
+const storedPlayed = ss.get('played', []);
+const played = new Set(Array.isArray(storedPlayed) ? storedPlayed : []);
+
+/* ---------- Boss Gate: puts a boss arena in front of ANY SMW-style level ---------- */
+const ARENA_TILES = {"2_Castle":"168x4,56x7,784x-1,56x1,168x4","2_Blocks":"55x-1,40,55x-1,40,55x-1,40,55x-1,40,55x-1,40,55x-1,40,55x-1,40,55x-1,40,55x-1,40,55x-1,40,55x-1,40,55x-1,40,55x-1,40,55x-1,40,55x-1,40,55x-1,40,55x-1,40,55x-1,40,224x-1"};
+const clean = s => String(s || '').replace(/[\[\]]/g, '').slice(0, 60);
+function arenaMap(intro, exitTo) {
+  return {"size":"56,22","layers":{"Objects":{"dat":"o,,0,0","objects":{
+      "0":`o46,5,17,3,E[26,15,,,,1],T[${clean(intro)}][Boss Gate]`,
+      "1":"bs2,30,16,E[7,.k,3,3,,,48,400,1,2,50,,1,2,2],C[o28]",
+      "2":"o75,50,17,E[26,15,,,,1,!],T[Only the boss key opens this door. Hold RUN to carry it, press UP at the door.][Locked]"}},
+    "Tiles 1":{"dat":"t,,0,0","tilemaps":Object.assign({}, ARENA_TILES)},"Tiles 2":{"dat":"t,,0,0"}},
+    "editL":"Objects","pal":0,"bgc":"000000","music":4,"mg":"2_castle,3,6",
+    "entryways":{"Exit Door":`5,Objects,52.5,17,${exitTo[0]},${exitTo[1]},,2`}};
+}
+function addBossGate(code) {
+  let lv; try { lv = JSON.parse(code); } catch (e) { return null; }
+  if (!lv || lv.style !== 2 || !lv.start || !lv.maps || !lv.maps[lv.start.map]) return null;
+  const startName = lv.start.map, start = lv.maps[startName], p1 = lv.start.p1 || {X:1, Y:17};
+  const objLayer = Object.keys(start.layers || {}).find(k => String(start.layers[k].dat || '').startsWith('o')) || 'Objects';
+  let arena = 'Herons Boss Gate', n = 2; while (lv.maps[arena]) arena = 'Herons Boss Gate ' + n++;
+  const dest = 'Past the Gate';
+  start.destinations = Object.assign({}, start.destinations, { [dest]: `0,${objLayer},${p1.X},${p1.Y}` });
+  lv.maps[arena] = arenaMap(`BOSS GATE! A boss is guarding the way into ${lv.name || 'this level'}. Stomp it 3 times, grab the key, and open the door.`, [dest, startName]);
+  lv.start = { map: arena, p1: { X: 2, Y: 17 } };
+  if (lv.timer) lv.timer = +lv.timer + 200;
+  return JSON.stringify(lv);
+}
+// A quick level that is just the arena, for trying out a boss
+function quickFight() {
+  return JSON.stringify({"ver":"v8.beta37","style":2,"name":"Herons Boss Arena","authors":"VRMS VGD","start":{"map":"Arena","p1":{"X":2,"Y":17}},
+    "maps":{"Arena":arenaMap('Welcome to the Herons Boss Arena! Stomp the boss 3 times, grab the key, and open the door.', ['Win Arrival','Victory']),
+      "Victory":{"size":"34,22","layers":{"Objects":{"dat":"o,,0,0","objects":{"0":"o46,6,17,2,E[26,15,,,,1],T[You beat the boss! Go Herons!][YAHOO!]","1":"o15,27,17,E[15,1,14,,1]"}},
+        "Tiles 1":{"dat":"t,,0,0","tilemaps":{"2_Grass":"612x-1,34x1,102x4"}},"Tiles 2":{"dat":"t,,0,0"}},
+        "editL":"Objects","pal":0,"bgc":"0063bd","music":1,"bg":"2_cloud1,1,6","mg":"2_cloud,1,6","fg":"2_hill2,1,6","destinations":{"Win Arrival":"0,Objects,2,17"}}},
+    "lives":5,"timer":400});
+}
+
+/* ---------- rendering ---------- */
+function bossName(code) {
+  if (!code) return 'Normal Bowser';
+  const b = bosses.find(x => x.code === code);
+  return b ? (b.name || pretty(b.code)) : pretty(code);
+}
+function stage(code) {
+  if (!code) return `<span class="stage"><span class="none">B</span></span>`;
+  return `<span class="stage"><img src="${thumb(code)}" alt="" onerror="this.outerHTML='<span class=none>?</span>'"></span>`;
+}
+function bossBar() {
+  return `<div class="bossbar">${stage(boss)}
+    <div class="who"><div class="lbl">Your boss</div><div class="nm">${esc(bossName(boss))}</div></div>
+    <button class="btn teal" data-tab="bosses">Change boss</button>
+    <button class="btn" data-quick="1">Quick fight</button></div>`;
+}
+function levelCard(l) {
+  const done = played.has(l.key);
+  if (l.url) return `<a class="lvl ${done ? 'done' : ''}" href="${esc(l.url)}" target="_blank" rel="noopener" data-link="${esc(l.key)}">
+    <span class="nm">${esc(l.name)}</span>${l.title ? `<span class="tt">${esc(l.title)}</span>` : ''}
+    <span class="row"><span class="go">Open game</span></span></a>`;
+  return `<button class="lvl ${done ? 'done' : ''}" data-i="${l.i}">
+    <span class="nm">${esc(l.name)}</span>${l.title ? `<span class="tt">${esc(l.title)}</span>` : ''}
+    <span class="row"><span class="go">${done ? 'Play again' : 'Play'}</span>${l.bowser ? '<span class="badge">Boss fight</span>' : ''}</span></button>`;
+}
+function errorDetails(errors) {
+  return `<details><summary>Show error details for your teacher</summary>${errors.map(e =>
+    `<p>${esc(e.message)}<code>${esc(e.url)}</code></p>`).join('')}</details>`;
+}
+function levelStatusHTML() {
+  if (lvStatus === 'loading') return `<div class="status" role="status">${esc(lvLoadingNote)}</div>`;
+  if (lvStatus === 'error') return `<div class="status error" role="status">
+    <strong>We couldn’t load the student level list.</strong>
+    <p>${levels.length ? 'The levels below are from the last successful load in this tab.' : 'The list could not be reached. This does not mean your game was deleted.'}</p>
+    <button class="btn" data-retry-levels>Try again</button>${errorDetails(lvErrors)}</div>`;
+  return lvSource === 'backup' ? `<div class="status" role="status"><p>The main list could not load. These levels came from the backup source.</p>
+    <button class="btn" data-retry-levels>Retry main list</button>${errorDetails(lvErrors)}</div>` : '';
+}
+function levelsHTML() {
+  const how = `<ol class="how"><li>Pick your boss up top (or keep Bowser).</li><li>Pick a level. The code copies for you.</li><li>Open the game, click Play Level, and press Ctrl+V.</li></ol>
+    <p class="note">Levels marked <span class="badge">Boss fight</span> already have Bowser in them, so your boss shows up there. Any other level can get a Boss Gate added.</p>`;
+  const status = levelStatusHTML();
+  if (!levels.length && lvStatus !== 'ready') return how + status;
+  if (!levels.length) return how + status + `<div class="status"><p>The published list has no student levels yet. Try a Quick fight, or check again after your teacher publishes the list.</p><button class="btn" data-retry-levels>Refresh levels</button></div>`;
+  const q = query.trim().toLowerCase();
+  const match = l => (!q || (l.name + ' ' + (l.title || '')).toLowerCase().includes(q)) && (!bossOnly || l.bowser);
+  const groups = (lvPeriod === 'All' ? lvPeriods : [lvPeriod]).map(p => {
+    const list = levels.filter(l => l.group === p && match(l)).sort((a, z) => a.name.localeCompare(z.name));
+    return list.length ? `<section><h2>${esc(p)}<span class="count">${list.length} level${list.length > 1 ? 's' : ''}</span></h2><div class="grid">${list.map(levelCard).join('')}</div></section>` : '';
+  }).join('');
+  return how + status + `<div class="list-tools"><p>${levels.length} published level${levels.length === 1 ? '' : 's'}</p>
+    <button class="btn" data-retry-levels ${lvStatus === 'loading' ? 'disabled' : ''}>Refresh levels</button></div>
+    <input class="find" type="search" placeholder="Type a student's first name" aria-label="Search levels" value="${esc(query)}">
+    <div class="bar" role="toolbar" aria-label="Filter levels">
+      ${(lvPeriods.length > 1 ? ['All', ...lvPeriods] : []).map(p => `<button class="chip" data-lp="${esc(p)}" aria-pressed="${p === lvPeriod}">${p === 'All' ? 'All classes' : esc(p)}</button>`).join('')}
+      <button class="chip bf" data-bossonly="1" aria-pressed="${bossOnly}">Boss fights only</button>
+    </div>
+    ${groups || '<p class="empty" style="margin-top:18px">No levels match. Check the spelling or turn off a filter.</p>'}`;
+}
+function bossCard(b) {
+  const on = boss === b.code;
+  return `<button class="boss" data-boss="${esc(b.code)}" aria-pressed="${on}">${stage(b.code)}
+    <span class="nm">${esc(b.name || pretty(b.code))}</span>
+    ${b.name ? `<span class="cn">by ${esc(pretty(b.code))}</span>` : ''}
+    ${b.taunt ? `<span class="say">"${esc(b.taunt)}"</span>` : ''}
+    <span class="go" style="margin-top:auto;align-self:flex-start">${on ? 'Your boss' : 'Choose'}</span></button>`;
+}
+function bossesHTML() {
+  const how = `<ol class="how"><li>Click a boss to make it yours.</li><li>Go to Levels and pick any level.</li><li>Your boss takes Bowser's place. Stomp it!</li></ol>`;
+  const status = bsStatus === 'loading' ? '<div class="status" role="status">Loading bosses…</div>' : bsStatus === 'error'
+    ? `<div class="status error" role="status"><strong>We couldn’t load the custom boss list.</strong><p>You can still use Normal Bowser and play student levels.</p><button class="btn" data-retry-bosses>Try again</button>${errorDetails(bsErrors)}</div>` : '';
+  const q = query.trim().toLowerCase();
+  const match = b => !q || pretty(b.code).toLowerCase().includes(q) || b.code.toLowerCase().includes(q) || String(b.name || '').toLowerCase().includes(q);
+  const normal = `<section><h2>Classic</h2><div class="bgrid"><button class="boss" data-boss="" aria-pressed="${!boss}">${stage('')}<span class="nm">Normal Bowser</span><span class="say">"GWAHAHA!"</span><span class="go" style="margin-top:auto;align-self:flex-start">${!boss ? 'Your boss' : 'Choose'}</span></button></div></section>`;
+  const groups = (bsPeriod === 'All' ? bsPeriods : [bsPeriod]).map(p => {
+    const list = bosses.filter(b => b.group === p && match(b)).sort((a, z) => a.code.localeCompare(z.code));
+    return list.length ? `<section><h2>${esc(p)}<span class="count">${list.length} boss${list.length > 1 ? 'es' : ''}</span></h2><div class="bgrid">${list.map(bossCard).join('')}</div></section>` : '';
+  }).join('');
+  return how + status + `<input class="find" type="search" placeholder="Search by boss or code name" aria-label="Search bosses" value="${esc(query)}">
+    ${bsPeriods.length > 1 ? `<div class="bar" role="toolbar" aria-label="Show one class period">${['All', ...bsPeriods].map(p => `<button class="chip" data-bp="${esc(p)}" aria-pressed="${p === bsPeriod}">${p === 'All' ? 'All classes' : esc(p)}</button>`).join('')}</div>` : ''}
+    ${normal}${groups || (bsStatus === 'ready' ? (bosses.length ? '<p class="empty" style="margin-top:18px">No boss matches this search or class filter.</p>' : '<p class="empty" style="margin-top:18px">No custom bosses have been published yet.</p>') : '')}
+    <p class="note"><a class="btn" href="boss-maker.html" target="_blank" rel="noopener">Make your own boss</a></p>`;
+}
+function render() {
+  const date = updated ? new Date(updated) : null;
+  const upd = date && !Number.isNaN(date.getTime()) ? date.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : null;
+  document.getElementById('app').innerHTML = `<div class="wrap">
+    <span class="kicker">${esc(SCHOOL)}</span>
+    <h1>Mario Hub</h1>
+    <p class="sub">Super Mario Construct levels and bosses made by View Ridge Video Game Design students.</p>
+    ${bossBar()}
+    <div class="tabs" role="tablist" aria-label="Browse levels or bosses">
+      <button class="tab" id="tab-levels" role="tab" data-tab="levels" aria-controls="hub-panel" tabindex="${tab === 'levels' ? 0 : -1}" aria-selected="${tab === 'levels'}">Levels</button>
+      <button class="tab" id="tab-bosses" role="tab" data-tab="bosses" aria-controls="hub-panel" tabindex="${tab === 'bosses' ? 0 : -1}" aria-selected="${tab === 'bosses'}">Bosses</button>
+    </div>
+    <main id="hub-panel" role="tabpanel" aria-labelledby="tab-${tab}">${tab === 'levels' ? levelsHTML() : bossesHTML()}</main>
+    <p class="note">Works best in Chrome or Edge on a laptop or desktop with a keyboard.</p>
+    ${upd || version ? `<p class="updated">${upd ? 'Levels updated ' + esc(upd) + '. ' : ''}${version ? 'Game version ' + esc(version) + '.' : ''}</p>` : ''}
+  </div>`;
+  document.querySelectorAll('.stage img').forEach(img => {
+    const fit = () => {
+      const box = img.parentElement, fh = (box.clientHeight - 12) / img.naturalHeight, fw = (box.clientWidth - 8) / img.naturalWidth;
+      let s = Math.min(3, Math.floor(Math.min(fh, fw)));
+      if (s < 1) s = 1 / Math.ceil(1 / Math.min(fh, fw));
+      Object.assign(img.style, { width: Math.round(img.naturalWidth * s) + 'px', height: Math.round(img.naturalHeight * s) + 'px', maxWidth: 'none', maxHeight: 'none' });
+    };
+    img.complete && img.naturalWidth ? fit() : img.addEventListener('load', fit);
+  });
+}
+
+/* ---------- play flow ---------- */
+async function copyText(t) {
+  try { await navigator.clipboard.writeText(t); return true; } catch (e) {}
+  try { const ta = document.createElement('textarea'); ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select(); const ok = document.execCommand('copy'); ta.remove(); return ok; } catch (e) { return false; }
+}
+let modalOpener = null;
+function openModal(html) {
+  if (!document.getElementById('modal').classList.contains('open')) modalOpener = document.activeElement;
+  document.getElementById('box').innerHTML = html;
+  document.getElementById('modal').classList.add('open');
+  (document.querySelector('#box [data-focus]') || document.querySelector('#box button')).focus();
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  pending = null;
+  const target = modalOpener && modalOpener.isConnected ? modalOpener : document.querySelector('.tab[aria-selected="true"]');
+  if (target) target.focus();
+}
+function toast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2600); }
+
+async function launch(code, title) {
+  const ok = await copyText(code);
+  const steps = `<ol class="steps"><li>Click <b>Play Level</b>.</li><li>Press <b>Ctrl+V</b> (Cmd+V on a Mac).</li><li>Find ${esc(bossName(boss))} and stomp 3 times!</li></ol>`;
+  const go = `<a class="btn big" href="${gameUrl(boss)}" target="herons-game" data-focus data-act="close">Open the game</a>`;
+  openModal(ok
+    ? `<h3 id="mh">${esc(title)} is copied!</h3><p>Click <b>Open the game</b>. It opens with <b>${esc(bossName(boss))}</b> as the boss.</p>${steps}<div class="actions"><button class="btn" data-act="close">Close</button>${go}</div>`
+    : `<h3 id="mh">One extra step</h3><p>This computer didn't let us copy automatically. The code below is selected. Press <b>Ctrl+C</b> (Cmd+C on a Mac).</p><textarea readonly>${esc(code)}</textarea>${steps}<div class="actions"><button class="btn" data-act="close">Close</button>${go}</div>`);
+  const ta = document.querySelector('#box textarea'); if (ta) { ta.focus(); ta.select(); }
+}
+let pending = null;
+function pickLevel(l) {
+  played.add(l.key); ss.set('played', [...played]);
+  const who = firstName(l.name) + "'s level";
+  if (l.bowser) return launch(l.code, who);
+  const gated = addBossGate(l.code);
+  if (!gated) return launch(l.code, who);
+  pending = { l, gated, who };
+  openModal(`<h3 id="mh">No Bowser in this one</h3><p>${esc(firstName(l.name))} didn't put a boss in this level. Want to add a Boss Gate? Your boss guards the entrance, then you play the level.</p>
+    <div class="choice">
+      <button data-gate="1" data-focus><b>Add a Boss Gate</b>Fight ${esc(bossName(boss))} first, then play the level.</button>
+      <button data-gate="0"><b>Play it as built</b>Just the level, no boss fight.</button>
+    </div><div class="actions"><button class="btn" data-act="close">Cancel</button></div>`);
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click', e => {
+  if (e.target.closest('[data-retry-levels]')) { loadLevels(); return; }
+  if (e.target.closest('[data-retry-bosses]')) { loadBosses(); return; }
+  if (e.target.id === 'modal' || e.target.closest('[data-act="close"]')) { setTimeout(closeModal, 30); return; }
+  const g = e.target.closest('[data-gate]');
+  if (g && pending) { const p = pending; pending = null; launch(g.dataset.gate === '1' ? p.gated : p.l.code, g.dataset.gate === '1' ? p.who + ' + Boss Gate' : p.who); render(); return; }
+  const link = e.target.closest('a[data-link]');
+  if (link) { played.add(link.dataset.link); ss.set('played', [...played]); setTimeout(render, 100); return; }
+  const t = e.target.closest('[data-tab]');
+  if (t) { tab = t.dataset.tab; query = ''; ss.set('tab', tab); render(); window.scrollTo({ top: document.querySelector('.tabs').offsetTop - 110, behavior: 'smooth' }); return; }
+  if (e.target.closest('[data-quick]')) { launch(quickFight(), 'The Boss Arena'); return; }
+  const b = e.target.closest('[data-boss]');
+  if (b) { boss = b.dataset.boss; ss.set('boss', boss); tab = 'levels'; query = ''; ss.set('tab', tab); render(); toast(bossName(boss) + ' is your boss. Now pick a level!'); return; }
+  const c = e.target.closest('button');
+  if (!c) return;
+  if (c.dataset.lp) { lvPeriod = c.dataset.lp; render(); return; }
+  if (c.dataset.bp) { bsPeriod = c.dataset.bp; render(); return; }
+  if (c.dataset.bossonly) { bossOnly = !bossOnly; render(); return; }
+  if (c.dataset.i !== undefined) { pickLevel(levels[+c.dataset.i]); render(); }
+});
+document.addEventListener('input', e => {
+  if (!e.target.classList.contains('find')) return;
+  query = e.target.value; const pos = e.target.selectionStart; render();
+  const s = document.querySelector('.find'); s.focus(); s.setSelectionRange(pos, pos);
+});
+document.addEventListener('keydown', e => {
+  const modal = document.getElementById('modal');
+  if (modal.classList.contains('open')) {
+    if (e.key === 'Escape') { e.preventDefault(); closeModal(); }
+    if (e.key === 'Tab') {
+      const items = [...document.querySelectorAll('#box a[href], #box button:not([disabled]), #box textarea')];
+      const first = items[0], last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+    return;
+  }
+  if (e.target.matches('.tab') && ['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
+    e.preventDefault();
+    tab = e.key === 'Home' ? 'levels' : e.key === 'End' ? 'bosses' : tab === 'levels' ? 'bosses' : 'levels';
+    query = ''; ss.set('tab', tab); render(); document.getElementById('tab-' + tab).focus();
+  }
+});
+
+/* ---------- data: same-site first, timeout, backup, and visible errors ---------- */
+const isUrl = s => /^https?:\/\/\S+$/i.test(String(s || '').trim());
+
+function setLevels(d) {
+  if (!d || !Array.isArray(d.levels)) throw new Error('The response is not a valid level list: expected a "levels" array.');
+  const fed = d.levels.filter(l => l && typeof l === 'object').map(l => {
+    const code = typeof l.code === 'string' ? l.code.trim() : '';
+    return Object.assign({}, l, {
+      name: String(l.name || '').trim(), title: String(l.title || '').trim(),
+      code: isUrl(code) ? '' : code,
+      url: isUrl(code) ? code : isUrl(l.url) ? String(l.url).trim() : ''
+    });
+  });
+  const next = fed.concat(LINK_LEVELS.filter(l => l && isUrl(l.url)))
+    .filter(l => l.name && (l.code || l.url))
+    .map((l, i) => Object.assign({}, l, {
+      name: String(l.name), title: String(l.title || ''), i, group: periodOf(l.period),
+      bowser: hasBowser(l.code), key: l.name + '|' + (l.title || '')
+    }));
+  if (d.levels.length && !next.length) throw new Error('The list contains entries, but none has a student name and playable code or link.');
+  levels = next;
+  updated = typeof d.updated === 'string' ? d.updated : null;
+  lvPeriods = [...new Set(levels.map(l => l.group))].sort((a, z) => pOrder(a) - pOrder(z));
+  if (lvPeriod !== 'All' && !lvPeriods.includes(lvPeriod)) lvPeriod = 'All';
+}
+
+async function fetchJSON(path) {
+  const url = new URL(path, document.baseURI);
+  url.searchParams.set('t', Date.now().toString());
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    const response = await fetch(url.href, {cache: 'no-store', signal: controller.signal});
+    if (!response.ok) throw new Error(response.status === 404
+      ? '404 — this file was not found at the requested address.'
+      : 'HTTP ' + response.status + ' — the server could not provide this file.');
+    try { return await response.json(); }
+    catch (error) {
+      if (controller.signal.aborted) throw error;
+      throw new Error('The server returned a page or invalid JSON instead of a game list.');
+    }
+  } catch (error) {
+    if (controller.signal.aborted) throw new Error('The request timed out. Please try again.');
+    if (error instanceof TypeError) throw new Error('The browser could not reach this address. A connection or network restriction may be involved.');
+    throw error;
+  } finally { clearTimeout(timer); }
+}
+
+async function loadLevels() {
+  const request = ++lvRequest;
+  lvStatus = 'loading'; lvErrors = []; lvLoadingNote = 'Loading student levels…'; render();
+  const sources = [...new Set([API_URL, BACKUP_API_URL].filter(Boolean))];
+  const errors = [];
+  for (let i = 0; i < sources.length; i++) {
+    const path = sources[i];
+    if (i > 0) {
+      lvLoadingNote = 'The main list could not load. Trying the backup…'; render();
+    }
+    try {
+      const data = await fetchJSON(path);
+      if (request !== lvRequest) return;
+      setLevels(data);
+      lvStatus = 'ready'; lvSource = i === 0 ? 'local' : 'backup'; lvErrors = errors;
+      render(); return;
+    } catch (error) {
+      if (request !== lvRequest) return;
+      const entry = {url: new URL(path, document.baseURI).href, message: error.message || String(error)};
+      errors.push(entry);
+      console.warn('[Mario Hub] Level list failed:', entry.url, entry.message);
+    }
+  }
+  if (request !== lvRequest) return;
+  lvErrors = errors; lvStatus = 'error'; render();
+}
+
+async function loadBosses() {
+  const request = ++bsRequest;
+  const path = './bosses/index.json';
+  bsStatus = 'loading'; bsErrors = []; render();
+  try {
+    const data = await fetchJSON(path);
+    if (request !== bsRequest) return;
+    if (!data || !Array.isArray(data.bosses)) throw new Error('The response is not a valid custom boss list.');
+    version = typeof data.gameVersion === 'string' ? data.gameVersion : '';
+    bosses = data.bosses.filter(b => b && typeof b.code === 'string' && b.code && !HIDDEN_BOSSES.includes(b.code))
+      .map(b => Object.assign({}, b, {group: b.period ? periodOf(b.period) : 'Guests'}));
+    // Only discard a saved selection after a successful boss-list request.
+    if (boss && !bosses.some(b => b.code === boss)) { boss = ''; ss.set('boss', ''); }
+    bsPeriods = [...new Set(bosses.map(b => b.group))].sort((a, z) => pOrder(a) - pOrder(z));
+    if (bsPeriod !== 'All' && !bsPeriods.includes(bsPeriod)) bsPeriod = 'All';
+    bsStatus = 'ready'; render();
+  } catch (error) {
+    if (request !== bsRequest) return;
+    bsErrors = [{url: new URL(path, document.baseURI).href, message: error.message || String(error)}];
+    bsStatus = 'error';
+    console.warn('[Mario Hub] Boss list failed:', bsErrors[0].url, bsErrors[0].message);
+    render();
+  }
+}
+
+render();
+loadLevels();
+loadBosses();
+</script>
+</body>
+</html>
+
