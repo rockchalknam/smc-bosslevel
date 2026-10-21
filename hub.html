@@ -107,10 +107,14 @@ button:focus-visible,input:focus-visible,a:focus-visible{outline:4px solid var(-
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mh"><div class="box" id="box"></div></div>
 <script>
 /* ===== SETTINGS: edit these ===== */
-// The build publishes levels.json beside hub.html. Keep this relative URL.
-const API_URL = 'https://raw.githubusercontent.com/rockchalknam/smc-bosslevel/main/levels.json';// Used only if the list on this site fails; student devices do not depend on it.
-const BACKUP_API_URL = 'https://raw.githubusercontent.com/rockchalknam/smc-bosslevel/main/levels.json';
-const REQUEST_TIMEOUT_MS = 12000;
+// Live list straight from GitHub: updates within minutes of publishing, no build needed.
+const API_URL = 'https://raw.githubusercontent.com/rockchalknam/smc-bosslevel/main/levels.json';
+// Copy the build puts next to this page. Used if GitHub can't be reached.
+const BACKUP_API_URL = './levels.json';
+// Slow school Wi-Fi + 30 Chromebooks at once: give each try a full minute.
+const REQUEST_TIMEOUT_MS = 60000;
+// Each source gets this many tries, with a short random wait between them.
+const TRIES_PER_SOURCE = 3;
 const SCHOOL = 'View Ridge Herons';
 // Students whose level lives somewhere else. Example: { name: 'Kaylena S.', period: 1, title: '', url: 'https://...' }
 const LINK_LEVELS = [];
@@ -211,8 +215,9 @@ function levelStatusHTML() {
     <strong>We couldn’t load the student level list.</strong>
     <p>${levels.length ? 'The levels below are from the last successful load in this tab.' : 'The list could not be reached. This does not mean your game was deleted.'}</p>
     <button class="btn" data-retry-levels>Try again</button>${errorDetails(lvErrors)}</div>`;
-  return lvSource === 'backup' ? `<div class="status" role="status"><p>The main list could not load. These levels came from the backup source.</p>
-    <button class="btn" data-retry-levels>Retry main list</button>${errorDetails(lvErrors)}</div>` : '';
+  if (lvSource === 'cache' && lvErrors.length) return `<div class="status" role="status"><p>Showing the levels saved on this computer. New levels will appear when the connection catches up.</p>
+    <button class="btn" data-retry-levels>Check for new levels</button>${errorDetails(lvErrors)}</div>`;
+  return '';
 }
 function levelsHTML() {
   const how = `<ol class="how"><li>Pick your boss up top (or keep Bowser).</li><li>Pick a level. The code copies for you.</li><li>Open the game, click Play Level, and press Ctrl+V.</li></ol>
@@ -410,35 +415,60 @@ async function fetchJSON(path) {
   try {
     const response = await fetch(url.href, {cache: 'no-store', signal: controller.signal});
     if (!response.ok) throw new Error(response.status === 404
-      ? '404 — this file was not found at the requested address.'
-      : 'HTTP ' + response.status + ' — the server could not provide this file.');
+      ? '404: this file was not found at the requested address.'
+      : 'HTTP ' + response.status + ': the server could not provide this file.');
     try { return await response.json(); }
     catch (error) {
       if (controller.signal.aborted) throw error;
       throw new Error('The server returned a page or invalid JSON instead of a game list.');
     }
   } catch (error) {
-    if (controller.signal.aborted) throw new Error('The request timed out. Please try again.');
+    if (controller.signal.aborted) throw new Error('The request timed out after ' + (REQUEST_TIMEOUT_MS / 1000) + ' seconds.');
     if (error instanceof TypeError) throw new Error('The browser could not reach this address. A connection or network restriction may be involved.');
     throw error;
   } finally { clearTimeout(timer); }
 }
 
+// Tries a source a few times. The random wait spreads out a whole class hitting Retry at once.
+const wait = ms => new Promise(r => setTimeout(r, ms));
+async function fetchWithRetry(path, onRetry) {
+  let last;
+  for (let t = 1; t <= TRIES_PER_SOURCE; t++) {
+    try { return await fetchJSON(path); }
+    catch (e) {
+      last = e;
+      if (t < TRIES_PER_SOURCE) { if (onRetry) onRetry(t); await wait(1500 * t + Math.random() * 2500); }
+    }
+  }
+  throw last;
+}
+
+// Last good list is saved on this Chromebook, so the hub shows levels instantly
+// and still works if the network hiccups. Fresh data replaces it as soon as it arrives.
+const CACHE_KEY = 'marioHubLevels_v1';
+function saveCache(d) { try { localStorage.setItem(CACHE_KEY, JSON.stringify(d)); } catch (e) {} }
+function loadCache() { try { const v = localStorage.getItem(CACHE_KEY); return v ? JSON.parse(v) : null; } catch (e) { return null; } }
+
 async function loadLevels() {
   const request = ++lvRequest;
-  lvStatus = 'loading'; lvErrors = []; lvLoadingNote = 'Loading student levels…'; render();
+  const cached = loadCache();
+  if (cached && !levels.length) {
+    try { setLevels(cached); lvSource = 'cache'; } catch (e) {}
+  }
+  lvStatus = levels.length ? 'ready' : 'loading';
+  lvErrors = []; lvLoadingNote = 'Loading student levels…'; render();
   const sources = [...new Set([API_URL, BACKUP_API_URL].filter(Boolean))];
   const errors = [];
   for (let i = 0; i < sources.length; i++) {
     const path = sources[i];
-    if (i > 0) {
-      lvLoadingNote = 'The main list could not load. Trying the backup…'; render();
-    }
+    if (i > 0 && !levels.length) { lvLoadingNote = 'Still loading. Trying the backup copy…'; render(); }
     try {
-      const data = await fetchJSON(path);
+      const data = await fetchWithRetry(path, t => {
+        if (request === lvRequest && !levels.length) { lvLoadingNote = 'The network is busy. Trying again (' + (t + 1) + ' of ' + TRIES_PER_SOURCE + ')…'; render(); }
+      });
       if (request !== lvRequest) return;
-      setLevels(data);
-      lvStatus = 'ready'; lvSource = i === 0 ? 'local' : 'backup'; lvErrors = errors;
+      setLevels(data); saveCache(data);
+      lvStatus = 'ready'; lvSource = i === 0 ? 'live' : 'backup'; lvErrors = errors;
       render(); return;
     } catch (error) {
       if (request !== lvRequest) return;
@@ -448,15 +478,21 @@ async function loadLevels() {
     }
   }
   if (request !== lvRequest) return;
-  lvErrors = errors; lvStatus = 'error'; render();
+  lvErrors = errors;
+  // If we already showed saved levels, keep them on screen instead of an error box.
+  lvStatus = levels.length ? 'ready' : 'error'; if (levels.length) lvSource = 'cache';
+  render();
 }
+
+// Quietly pick up newly published levels every 3 minutes while the page is open.
+setInterval(() => { if (document.visibilityState === 'visible' && lvStatus !== 'loading') loadLevels(); }, 180000);
 
 async function loadBosses() {
   const request = ++bsRequest;
   const path = './bosses/index.json';
   bsStatus = 'loading'; bsErrors = []; render();
   try {
-    const data = await fetchJSON(path);
+    const data = await fetchWithRetry(path);
     if (request !== bsRequest) return;
     if (!data || !Array.isArray(data.bosses)) throw new Error('The response is not a valid custom boss list.');
     version = typeof data.gameVersion === 'string' ? data.gameVersion : '';
@@ -482,4 +518,3 @@ loadBosses();
 </script>
 </body>
 </html>
-
