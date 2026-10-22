@@ -254,13 +254,13 @@ function bossesHTML() {
     ? `<div class="status error" role="status"><strong>We couldn’t load the custom boss list.</strong><p>You can still use Normal Bowser and play student levels.</p><button class="btn" data-retry-bosses>Try again</button>${errorDetails(bsErrors)}</div>` : '';
   const q = query.trim().toLowerCase();
   const match = b => !q || pretty(b.code).toLowerCase().includes(q) || b.code.toLowerCase().includes(q) || String(b.name || '').toLowerCase().includes(q);
-  const normal = `<section><h2>Classic</h2><div class="bgrid"><button class="boss" data-boss="" aria-pressed="${!boss}">${stage('')}<span class="nm">Normal Bowser</span><span class="say">"GWAHAHA!"</span><span class="go" style="margin-top:auto;align-self:flex-start">${!boss ? 'Your boss' : 'Choose'}</span></button></div></section>`;
-  const groups = (bsPeriod === 'All' ? bsPeriods : [bsPeriod]).map(p => {
+  const normal = `<section><h2>Classic</h2><div class="bgrid"><button class="boss" data-boss="" aria-pressed="${!boss}">${stage('')}<span class="nm">Normal Bowser</span><span class="say">"GWAHAHA!"</span><span class="go" style="margin-top:auto;align-self:flex-start">${!boss ? 'Your boss' : 'Choose'}</span></button>${bosses.filter(b => b.group === 'Guests' && match(b)).map(bossCard).join('')}</div></section>`;
+  const groups = (bsPeriod === 'All' ? bsPeriods : [bsPeriod]).filter(p => p !== 'Guests').map(p => {
     const list = bosses.filter(b => b.group === p && match(b)).sort((a, z) => a.code.localeCompare(z.code));
     return list.length ? `<section><h2>${esc(p)}<span class="count">${list.length} boss${list.length > 1 ? 'es' : ''}</span></h2><div class="bgrid">${list.map(bossCard).join('')}</div></section>` : '';
   }).join('');
   return how + status + `<input class="find" type="search" placeholder="Search by boss or code name" aria-label="Search bosses" value="${esc(query)}">
-    ${bsPeriods.length > 1 ? `<div class="bar" role="toolbar" aria-label="Show one class period">${['All', ...bsPeriods].map(p => `<button class="chip" data-bp="${esc(p)}" aria-pressed="${p === bsPeriod}">${p === 'All' ? 'All classes' : esc(p)}</button>`).join('')}</div>` : ''}
+    ${bsPeriods.length > 1 ? `<div class="bar" role="toolbar" aria-label="Show one class period">${['All', ...bsPeriods.filter(p => p !== 'Guests')].map(p => `<button class="chip" data-bp="${esc(p)}" aria-pressed="${p === bsPeriod}">${p === 'All' ? 'All classes' : esc(p)}</button>`).join('')}</div>` : ''}
     ${normal}${groups || (bsStatus === 'ready' ? (bosses.length ? '<p class="empty" style="margin-top:18px">No boss matches this search or class filter.</p>' : '<p class="empty" style="margin-top:18px">No custom bosses have been published yet.</p>') : '')}
     <p class="note"><a class="btn" href="boss-maker.html" target="_blank" rel="noopener">Make your own boss</a></p>`;
 }
