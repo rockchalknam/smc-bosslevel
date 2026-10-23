@@ -120,6 +120,8 @@ const SCHOOL = 'View Ridge Herons';
 const LINK_LEVELS = [];
 // Codes to hide without deleting them (test bosses, etc.)
 const HIDDEN_BOSSES = [];
+// Teacher bosses: shown in the Classic row right after Normal Bowser, in this order.
+const TEACHER_BOSSES = ['mr-nam'];
 /* ================================ */
 
 const ORD = n => n + ((n % 100 >= 11 && n % 100 <= 13) ? 'th' : ({1:'st',2:'nd',3:'rd'}[n % 10] || 'th'));
@@ -254,7 +256,7 @@ function bossesHTML() {
     ? `<div class="status error" role="status"><strong>We couldn’t load the custom boss list.</strong><p>You can still use Normal Bowser and play student levels.</p><button class="btn" data-retry-bosses>Try again</button>${errorDetails(bsErrors)}</div>` : '';
   const q = query.trim().toLowerCase();
   const match = b => !q || pretty(b.code).toLowerCase().includes(q) || b.code.toLowerCase().includes(q) || String(b.name || '').toLowerCase().includes(q);
-  const normal = `<section><h2>Classic</h2><div class="bgrid"><button class="boss" data-boss="" aria-pressed="${!boss}">${stage('')}<span class="nm">Normal Bowser</span><span class="say">"GWAHAHA!"</span><span class="go" style="margin-top:auto;align-self:flex-start">${!boss ? 'Your boss' : 'Choose'}</span></button></div></section>`;
+  const normal = `<section><h2>Classic</h2><div class="bgrid"><button class="boss" data-boss="" aria-pressed="${!boss}">${stage('')}<span class="nm">Normal Bowser</span><span class="say">"GWAHAHA!"</span><span class="go" style="margin-top:auto;align-self:flex-start">${!boss ? 'Your boss' : 'Choose'}</span></button>${TEACHER_BOSSES.map(c => bosses.find(b => b.code === c)).filter(b => b && match(b)).map(bossCard).join('')}</div></section>`;
   const groups = (bsPeriod === 'All' ? bsPeriods : [bsPeriod]).map(p => {
     const list = bosses.filter(b => b.group === p && match(b)).sort((a, z) => a.code.localeCompare(z.code));
     return list.length ? `<section><h2>${esc(p)}<span class="count">${list.length} boss${list.length > 1 ? 'es' : ''}</span></h2><div class="bgrid">${list.map(bossCard).join('')}</div></section>` : '';
@@ -497,10 +499,10 @@ async function loadBosses() {
     if (!data || !Array.isArray(data.bosses)) throw new Error('The response is not a valid custom boss list.');
     version = typeof data.gameVersion === 'string' ? data.gameVersion : '';
     bosses = data.bosses.filter(b => b && typeof b.code === 'string' && b.code && !HIDDEN_BOSSES.includes(b.code))
-      .map(b => Object.assign({}, b, {group: b.period ? periodOf(b.period) : 'Guests'}));
+      .map(b => Object.assign({}, b, {group: TEACHER_BOSSES.includes(b.code) ? 'Teacher' : b.period ? periodOf(b.period) : 'Guests'}));
     // Only discard a saved selection after a successful boss-list request.
     if (boss && !bosses.some(b => b.code === boss)) { boss = ''; ss.set('boss', ''); }
-    bsPeriods = [...new Set(bosses.map(b => b.group))].sort((a, z) => pOrder(a) - pOrder(z));
+    bsPeriods = [...new Set(bosses.map(b => b.group).filter(g => g !== 'Teacher'))].sort((a, z) => pOrder(a) - pOrder(z));
     if (bsPeriod !== 'All' && !bsPeriods.includes(bsPeriod)) bsPeriod = 'All';
     bsStatus = 'ready'; render();
   } catch (error) {
