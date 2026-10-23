@@ -17,6 +17,16 @@ Everything goes through one form: **Herons Super Mario Construct Arcade**. A dro
 
 No teacher approval step. Old SMC-WCB levels stay off the Hub.
 
+## Boss names
+
+Bosses go by the student's first name and last initial, pulled from their school email. No code names.
+
+- `ella.swearingen@...` shows as **Ella S.** and the file is saved as `ella-s-p1` (p1 = period 1).
+- Each student gets one boss slot per period. A new submission replaces their old boss.
+- Each boss card shows the boss name and taunt, with "by Ella S." underneath.
+- Same first name and last initial in the same period? The second one becomes `ella-s2-p1`.
+- Older bosses (like `rin-p1` or `pikachu-p3`) keep their old names. If that student resubmits, the old one stays until you remove it with **Arcade > Remove selected row from the hub**.
+
 ## How students play
 
 1. Pick a boss up top (or keep Bowser).
@@ -25,9 +35,9 @@ No teacher approval step. Old SMC-WCB levels stay off the Hub.
 
 ## Teacher jobs
 
-- **Add a boss by hand:** open `turned-in`, click **Add file > Upload files**, drag in the zip (named with the student's code name), and commit.
+- **Add a boss by hand:** open `turned-in`, click **Add file > Upload files**, drag in the zip (named like `ella-s-p1`), and commit.
 - **Remove a boss:** open its zip in `turned-in`, click the trash icon, and commit.
-- **Guest bosses** (like Mr. Nam) show first, right after Normal Bowser. Add a code name to `FEATURED` in `build_site.py`.
+- **Guest bosses** (like Mr. Nam) show first, right after Normal Bowser. Add the boss's file name to `FEATURED` in `build_site.py`.
 - **Watch a build:** the **Actions** tab. Green check = live.
 
 Every Monday it also checks Level Share Square for a game update and rebuilds by itself.
