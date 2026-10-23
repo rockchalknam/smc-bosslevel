@@ -178,6 +178,7 @@ def main(src, site):
             extra = json.load(open(os.path.join(src, code + ".json"), encoding="utf-8"))
             if str(extra.get("name", "")).strip(): info["name"] = str(extra["name"]).strip()[:24]
             if str(extra.get("taunt", "")).strip(): info["taunt"] = str(extra["taunt"]).strip()[:60]
+            if str(extra.get("by", "")).strip(): info["by"] = str(extra["by"]).strip()[:24]
         except Exception:
             pass
         return info
